@@ -1,9 +1,14 @@
-#install.packages('tidycensus')
 #install.packages('tidyverse')
+#install.packages('tidycensus')
 
-library(tidycensus)
 library(tidyverse)
+library(tidycensus)
+
+#using tidycensus: https://cran.r-project.org/web/packages/tidycensus/tidycensus.pdf
 
 census_api_key('5dc30770cc0133357b32b987a7bdd7f51e1b4a80', install = TRUE, overwrite = TRUE)
 
-acs19 <- load_variables(year = 2019, dataset = 'acs1', cache = TRUE)
+# ACS 2019 PUMS Data Dictionary: https://www2.census.gov/programs-surveys/acs/tech_docs/pums/data_dict/PUMS_Data_Dictionary_2019.pdf
+
+#example loading PUMS
+acs19pums <- get_pums(variables = c("AGEP","ANC1P",'COW'), state ="VT", survey = "acs1", year = 2019, recode ="TRUE", key = '5dc30770cc0133357b32b987a7bdd7f51e1b4a80')
