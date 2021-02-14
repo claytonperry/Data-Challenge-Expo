@@ -1,7 +1,5 @@
-setwd('C:/Users/admin/Folders/Personal Projects/2021/Economic Data/CPS ASEC')
-
-install.packages('tidycensus')
-install.packages('tidyverse')
+#install.packages('tidycensus')
+#install.packages('tidyverse')
 
 library(tidycensus)
 library(tidyverse)
