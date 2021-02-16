@@ -1,9 +1,20 @@
-install.packages('janitor')
-install.packages('httr')
+#Install relevant libraries
+#install.packages('readxl')
+#install.packages('httr')
 
-library(janitor)
+#Call relevant libraries
 library(readxl)
 library(httr)
+
+#set relevant column name vector, skip number, vector of week numbers
+
+table <- #table you're pulling (eg. employ2)
+colnames <- paste0(table,'_weekx_cols')
+skips <- paste0(table,'_weekx_skip')
+weeks <- seq(1,16)
+
+
+#create online read function for relevant dataset
 
 readxl_online <- function(url, type = NULL, ...) {
   test <- stringr::str_detect(url, "[.]xls|[.]zip")
@@ -33,10 +44,16 @@ readxl_online <- function(url, type = NULL, ...) {
     
   }
   df <- httr::GET(url, write_disk(paste0("tmp", type), overwrite = TRUE))
-  df <- readxl::read_excel(paste0("tmp", type),skip=7,col_names = c('characteristic','total','gov','priv_company', 'nonprofit','self_emp','family_biz'
-                                                                    ,'not_spec','not_emp','no_report'))
+  df <- readxl::read_excel(paste0("tmp", type),skip=7,col_names = colnames, skip = skips)
   
 }
 
+# loop to create a df for each week's table
 
-test <- readxl_online('https://www2.census.gov/programs-surveys/demo/tables/hhp/2020/wk1/employ2_week1.xlsx')
+for (i in weeks) {
+  url <- paste0('https://www2.census.gov/programs-surveys/demo/tables/hhp/2020/wk',i,'/employ2_week',i,'.xlsx')
+  framename <- paste0(table,'_week',i)
+  df <- readxl_online(url = url)
+  assign(framename,df)
+}
+
