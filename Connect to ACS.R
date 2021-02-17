@@ -1,5 +1,6 @@
 #install.packages('tidyverse')
 #install.packages('tidycensus')
+setwd('C:/Users/admin/Folders/Data Expo Project')
 
 library(tidyverse)
 library(tidycensus)
@@ -12,4 +13,3 @@ census_api_key('5dc30770cc0133357b32b987a7bdd7f51e1b4a80', install = TRUE, overw
 
 #example loading PUMS
 acs_5yr_19_pums <- get_pums(variables = c("AGEP","ANC1P",'COW'), state ="VT", survey = "acs5", year = 2019, recode ="TRUE")
-
