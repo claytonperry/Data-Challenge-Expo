@@ -18,12 +18,12 @@ repwgt_files <- drive_find(pattern = 'pulse2020_rep|pulse2021_rep')
 
 numweeks <- puf_files %>%
   mutate(week = as.numeric(substr(name,str_locate(name,'f_')+2,str_locate(name,'f_')+3))) %>%
-  select(week)
+  pull(week)
 
 
 puf_list <- list()
 
-for (i in numweeks$week) {
+for (i in numweeks) {
   temp <- tempfile(fileext = ".csv")
   id <- puf_files[[i,2]]
   dl <- drive_download(
@@ -37,7 +37,7 @@ puf_df <- do.call('rbind',puf_list)
 
 repwgt_list <- list()
 
-for (i in numweeks$week) {
+for (i in numweeks) {
   temp <- tempfile(fileext = ".csv")
   id <- repwgt_files[[i,2]]
   dl <- drive_download(
