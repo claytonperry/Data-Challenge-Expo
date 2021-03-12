@@ -35,7 +35,7 @@ puf_df <- do.call('rbind',puf_list)
 
 repwgt_list <- list()
 
-for (i in numweeks) {
+for (i in numweeks$week) {
   temp <- tempfile(fileext = ".csv")
   id <- repwgt_files[[i,2]]
   dl <- drive_download(
