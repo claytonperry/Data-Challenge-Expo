@@ -23,7 +23,7 @@ numweeks <- puf_files %>%
 
 puf_list <- list()
 
-for (i in numweeks) {
+for (i in numweeks$week) {
   temp <- tempfile(fileext = ".csv")
   id <- puf_files[[i,2]]
   dl <- drive_download(
