@@ -28,7 +28,9 @@ for (i in numweeks$week) {
   id <- puf_files[[i,2]]
   dl <- drive_download(
     as_id(id), path = temp, overwrite = TRUE)
-  puf_list[[i]] <- read.csv(temp)
+  j <- read.csv(temp)
+  puf_list[[i]] <- j %>%
+    select(RHISPANIC,RRACE,EEDUC,ANYWORK,RSNNOWRK,EST_ST,PWEIGHT,EGENDER)
 }
 
 puf_df <- do.call('rbind',puf_list)
@@ -40,7 +42,7 @@ for (i in numweeks$week) {
   id <- repwgt_files[[i,2]]
   dl <- drive_download(
     as_id(id), path = temp, overwrite = TRUE)
-  puf_list[[i]] <- read.csv(temp)
+  repwgt_list[[i]] <- read.csv(temp)
 }
 
 repwgt_df <- do.call('rbind',repwgt_list)
