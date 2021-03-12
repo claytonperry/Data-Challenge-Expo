@@ -1,4 +1,3 @@
-#test comment
 #Set up and pull ACS data
 
 #install.packages('tidyverse')
