@@ -10,6 +10,7 @@ path <- 'https://healthdata.gov/resource/gyqz-9u7n.json?policy_level=state&$limi
 
 request <- GET(path)
 
+#if this returns anything other than '200' there is an issue with the PATH
 request$status_code
 
 response <- content(request, as = 'text', encoding = 'UTF-8')
@@ -24,4 +25,5 @@ df <- raw %>%
   rename(date = newdate,
          state = state_id)
 
+#explore the different policy types
 summary(as.factor(df$policy_type))

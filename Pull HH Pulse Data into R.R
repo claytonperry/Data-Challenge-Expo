@@ -20,6 +20,7 @@ numweeks <- puf_files %>%
   mutate(week = as.numeric(substr(name,str_locate(name,'f_')+2,str_locate(name,'f_')+3))) %>%
   pull(week)
 
+#create puf df
 
 puf_list <- list()
 
@@ -35,6 +36,8 @@ for (i in numweeks) {
 
 puf_df <- do.call('rbind',puf_list)
 
+#create repweight df
+
 repwgt_list <- list()
 
 for (i in numweeks) {
@@ -42,7 +45,9 @@ for (i in numweeks) {
   id <- repwgt_files[[i,2]]
   dl <- drive_download(
     as_id(id), path = temp, overwrite = TRUE)
-  repwgt_list[[i]] <- read.csv(temp)
+  j <- read.csv(temp)
+  repwgt_list[[i]] <- j %>%
+    select(SCRAM,WEEK,contains('PWEIGHT'))
 }
 
 repwgt_df <- do.call('rbind',repwgt_list)
