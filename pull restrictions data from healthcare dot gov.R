@@ -14,7 +14,14 @@ request$status_code
 
 response <- content(request, as = 'text', encoding = 'UTF-8')
 
-df <- fromJSON(response, flatten = T) %>%
+raw <- fromJSON(response, flatten = T) %>%
   data.frame
 
+df <- raw %>%
+  mutate(fixeddate = gsub('0020','2020',date),
+    newdate = as.Date.character(substr(fixeddate,1,10),format = '%Y-%m-%d')) %>%
+  select(-fixeddate,-date) %>%
+  rename(date = newdate,
+         state = state_id)
 
+summary(as.factor(df$policy_type))
