@@ -20,10 +20,26 @@ raw <- fromJSON(response, flatten = T) %>%
 
 df <- raw %>%
   mutate(fixeddate = gsub('0020','2020',date),
-    newdate = as.Date.character(substr(fixeddate,1,10),format = '%Y-%m-%d')) %>%
+         newdate = as.Date.character(substr(fixeddate,1,10),format = '%Y-%m-%d')) %>%
   select(-fixeddate,-date) %>%
   rename(date = newdate,
          state = state_id)
 
 #explore the different policy types
-summary(as.factor(df$policy_type))
+summary(df$policy_type)
+
+df %>%
+  filter(date <= '2020-03-21',) %>%
+  select(policy_type) %>%
+  summary.factor(maxsum = 20)
+
+df %>%
+  filter(date <= '2020-03-21',
+         policy_type == 'Non-Essential Businesses') %>%
+  select(comments) %>%
+  summary.factor(maxsum = 20)
+
+df %>%
+  filter(policy_type == 'Food and Drink') %>%
+  select(comments) %>%
+  head(5)
