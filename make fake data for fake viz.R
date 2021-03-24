@@ -6,7 +6,7 @@ drive_auth()
 gs4_auth()
 
 
-st_abbrevs <- read.csv('state_abbrevs.csv')
+st_abbrevs <- read.csv('https://raw.githubusercontent.com/jasonong/List-of-US-States/master/states.csv')
 
 states <- data.frame(st_abbrevs$Abbreviation,1)
 
