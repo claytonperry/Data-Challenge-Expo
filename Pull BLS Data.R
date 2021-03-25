@@ -3,6 +3,10 @@
 #install.packages('blsAPI')
 library(blsAPI)
 
+states <- read.csv('https://gist.githubusercontent.com/dantonnoriega/bf1acd2290e15b91e6710b6fd3be0a53/raw/11d15233327c8080c9646c7e1f23052659db251d/us-state-ansi-fips.csv',
+                   colClasses = 'character',
+                   strip.white = T)
+
 Sys.setenv(BLS_KEY = '9ecd688f35134033b93b83dfd06aaaee') #will get this when i get back to DC
 
 #Set product we're interested, in this case the LAU tables
@@ -11,8 +15,7 @@ product <- 'LAU'
 
 #Set area we're interested in, in this case every state
 
-FIPS <- c('01','02','04','05','06','08','09','10','12','13','15','16','17','18','19','20','21','22','23','24','25','26','27','28','29','30','31','32'
-,'33','34','35','36','37','38','39','40','41','42','44','45','46','47','48','49','50','51','53','54','55','56')
+FIPS <- states$st
 
 areas <- paste0('ST',FIPS,'00000000000')
 
