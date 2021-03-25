@@ -25,7 +25,9 @@ areas <- paste0('ST',states$st,'00000000000')
 
 #Set measurement we're interested in, in this case unemployment rate
 
-measurement <- '03'
+measurement <- measures %>%
+  filter(measure == 'unemployment rate') %>%
+  pull(code)
 
 #Put it all together as seriesIDs
 
@@ -45,6 +47,10 @@ df <- blsAPI(payload,return_data_frame = TRUE)
 
 df2 <- df %>%
   mutate(st = substr(seriesID,6,7),
-         code = substr(seriesID,19,20)) %>%
+         code = substr(seriesID,19,20),
+         value = as.numeric(value),
+         month = substr(periodName,0,3)) %>%
   left_join(measures, by = 'code') %>%
-  left_join(states, by = 'st')
+  left_join(states, by = 'st') %>%
+  mutate(state = stusps) %>%
+  select(year,month,value,measure,state)
