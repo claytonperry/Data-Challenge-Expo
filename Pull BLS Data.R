@@ -7,7 +7,12 @@ states <- read.csv('https://gist.githubusercontent.com/dantonnoriega/bf1acd2290e
                    colClasses = 'character',
                    strip.white = T)
 
-Sys.setenv(BLS_KEY = '9ecd688f35134033b93b83dfd06aaaee') #will get this when i get back to DC
+measures <- data.frame(code = c('03','04','05','06','07','08','09'),
+                       measure = c('unemployment rate','unemployment count','employment count',
+                         'labor force','employment-population ratio',
+                         'labor force participation rate','civilian noninstitutional population'))
+
+Sys.setenv(BLS_KEY = '9ecd688f35134033b93b83dfd06aaaee')
 
 #Set product we're interested, in this case the LAU tables
 
@@ -15,9 +20,8 @@ product <- 'LAU'
 
 #Set area we're interested in, in this case every state
 
-FIPS <- states$st
 
-areas <- paste0('ST',FIPS,'00000000000')
+areas <- paste0('ST',states$st,'00000000000')
 
 #Set measurement we're interested in, in this case unemployment rate
 
@@ -39,3 +43,8 @@ df <- blsAPI(payload,return_data_frame = TRUE)
 
 #add normal statecode back
 
+df2 <- df %>%
+  mutate(st = substr(seriesID,6,7),
+         code = substr(seriesID,19,20)) %>%
+  left_join(measures, by = 'code') %>%
+  left_join(states, by = 'st')
