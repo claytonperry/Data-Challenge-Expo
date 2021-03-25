@@ -6,6 +6,7 @@ __pycache__/
 *.so
 # Distribution / packaging
 .Python
+.csv
 .xlsx
 build/
 develop-eggs/
