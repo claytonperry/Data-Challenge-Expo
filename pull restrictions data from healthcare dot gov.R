@@ -23,7 +23,7 @@ df <- raw %>%
   rename(state = state_id)
 
 #explore the different policy types
-summary(df$policy_type)
+summary.factor(df$policy_type)
 
 df %>%
   filter(date <= '2020-03-21',) %>%
@@ -37,19 +37,16 @@ df %>%
   summary.factor(maxsum = 20)
 
 df %>%
-  filter(policy_type == 'Food and Drink') %>%
+  filter(date <= '2020-03-21',
+         policy_type == 'Food and Drink') %>%
   select(comments) %>%
   summary.factor(maxsum = 20)
 
 df %>%
-  filter(policy_type == 'State of Emergency') %>%
+  filter(date <= '2020-03-21',
+         policy_type == 'State of Emergency') %>%
   select(comments) %>%
   summary.factor(maxsum = 20)
-
-
-
-
-
 
 
 
