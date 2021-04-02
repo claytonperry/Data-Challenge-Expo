@@ -31,7 +31,7 @@ for (i in numweeks) {
     as_id(id), path = temp, overwrite = TRUE)
   j <- read.csv(temp)
   puf_list[[i]] <- j %>%
-    select(RHISPANIC,RRACE,EEDUC,ANYWORK,RSNNOWRK,EST_ST,PWEIGHT,EGENDER)
+    select(WEEK,RHISPANIC,RRACE,EEDUC,ANYWORK,RSNNOWRK,EST_ST,PWEIGHT,EGENDER)
 }
 
 puf_df <- do.call('rbind',puf_list)
@@ -47,7 +47,7 @@ for (i in numweeks) {
     as_id(id), path = temp, overwrite = TRUE)
   j <- read.csv(temp)
   repwgt_list[[i]] <- j %>%
-    select(SCRAM,WEEK,contains('PWEIGHT'))
+    select(WEEK,SCRAM,contains('PWEIGHT'))
 }
 
 repwgt_df <- do.call('rbind',repwgt_list)
