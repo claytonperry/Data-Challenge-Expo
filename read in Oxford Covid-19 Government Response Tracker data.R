@@ -6,3 +6,7 @@ raw %>%
          C2_Workplace.closing > 1) %>%
   select(Date) %>%
   summary()
+
+
+##different set
+raw2 <- read.csv('https://raw.githubusercontent.com/COVID19StatePolicy/SocialDistancing/master/data/USstatesCov19distancingpolicy.csv')

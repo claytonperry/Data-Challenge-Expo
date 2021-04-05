@@ -6,11 +6,13 @@ drive_auth()
 gs4_auth()
 
 
-st_abbrevs <- read.csv('https://gist.githubusercontent.com/dantonnoriega/bf1acd2290e15b91e6710b6fd3be0a53/raw/11d15233327c8080c9646c7e1f23052659db251d/us-state-ansi-fips.csv',
+states <- read.csv('https://gist.githubusercontent.com/dantonnoriega/bf1acd2290e15b91e6710b6fd3be0a53/raw/11d15233327c8080c9646c7e1f23052659db251d/us-state-ansi-fips.csv',
                        colClasses = 'character',
-                       strip.white = T)
+                       strip.white = T) %>%
+  rename(fips = st,
+         state = stusps)
 
-states <- data.frame(st_abbrevs$stusps,1)
+states <- data.frame(st_abbrevs$state,1)
 
 years <- data.frame(c('2020','2021'),1)
 

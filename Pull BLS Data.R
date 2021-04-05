@@ -54,3 +54,7 @@ df2 <- df %>%
   left_join(states, by = 'st') %>%
   mutate(state = stusps) %>%
   select(year,month,value,measure,state)
+
+df2 %>%
+  select(state) %>%
+  summary.factor()
