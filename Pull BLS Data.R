@@ -21,7 +21,9 @@ product <- 'LAU'
 #Set area we're interested in, in this case every state
 
 
-areas <- paste0('ST',states$st,'00000000000')
+areas <- data.frame(paste0('ST',states$st,'00000000000'),states$stusps)
+                    
+colnames(areas) <- c('code','state')
 
 #Set measurement we're interested in, in this case unemployment rate
 
@@ -31,21 +33,29 @@ measurement <- measures %>%
 
 #Put it all together as seriesIDs
 
-series <- paste0(product,areas,measurement)
+series1 <- paste0(product,areas$code[areas$state <= 'MS'],measurement)
+series2 <- paste0(product,areas$code[areas$state > 'MS'],measurement)
 
 #Create API payload
 
-payload <- list('seriesid' = series,
+payload1 <- list('seriesid' = series1,
         'startyear' = 2020,
         'endyear' = 2021)
 
+payload2 <- list('seriesid' = series2,
+                 'startyear' = 2020,
+                 'endyear' = 2021)
+
 #pull API response from payload
 
-df <- blsAPI(payload,return_data_frame = TRUE)
+df1 <- blsAPI(payload1,return_data_frame = TRUE)
+
+df2 <- blsAPI(payload2,return_data_frame = TRUE)
 
 #add normal statecode back
 
-df2 <- df %>%
+df <- df1 %>%
+  rbind(df2) %>%
   mutate(st = substr(seriesID,6,7),
          code = substr(seriesID,19,20),
          value = as.numeric(value),
@@ -55,6 +65,6 @@ df2 <- df %>%
   mutate(state = stusps) %>%
   select(year,month,value,measure,state)
 
-df2 %>%
+df %>%
   select(state) %>%
   summary.factor()
