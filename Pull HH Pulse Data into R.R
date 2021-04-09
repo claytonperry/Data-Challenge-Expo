@@ -52,3 +52,12 @@ for (i in numweeks) {
 }
 
 repwgt_df <- do.call('rbind',repwgt_list)
+
+
+## Schedule import
+
+schedule <- read_sheet('1x0dA4IFh_pLkXd5nsBIg5oYmBnqx5m7sGOL8_RllNWA',
+                       range = 'Schedule!A:D') %>%
+  mutate(midpoint = strftime(as.POSIXct((as.numeric(Time_Period_Begin) + as.numeric(Time_Period_End)) / 2,
+                               origin = '1970-01-01'),
+                               format = '%Y-%m-%d'))
