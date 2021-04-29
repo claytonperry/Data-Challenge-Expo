@@ -28,6 +28,12 @@ write_sheet(cmt_puf1, ss = '1M_WzK_o4eRZm1aLTX3Ey7P-jXQsxjBwO4MXD4gdaGWw', sheet
 
 #gs4_auth()
 
+states <- read.csv('https://gist.githubusercontent.com/dantonnoriega/bf1acd2290e15b91e6710b6fd3be0a53/raw/11d15233327c8080c9646c7e1f23052659db251d/us-state-ansi-fips.csv',
+                   colClasses = 'character',
+                   strip.white = T) %>%
+  rename(fips = st,
+         state = stusps)
+
 df <- puf_df %>%
   group_by(EST_ST,WEEK) %>%
   summarise(total_pop_n = sum(PWEIGHT),
@@ -39,10 +45,9 @@ df <- puf_df %>%
          total_unemp_rt = total_unemp_n/total_pop_n,
          covid_unemp_prop = covid_unemp_n/total_unemp_n) %>%
   full_join(states, by = 'fips') %>%
-  full_join(schedule, by = 'week') %>%
+  inner_join(schedule, by = 'week') %>%
   ungroup() %>%
-  select(state, week, midpoint, covid_unemp_rt, total_unemp_rt, covid_unemp_prop) %>%
+  select(state, week, monthname, covid_unemp_rt, total_unemp_rt, covid_unemp_prop) %>%
   gather('measurement','value',-c(1:3))
 
 write_sheet(df, ss = '1M_WzK_o4eRZm1aLTX3Ey7P-jXQsxjBwO4MXD4gdaGWw', sheet = 'Sheet1')
-
