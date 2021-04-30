@@ -61,9 +61,10 @@ repwgt_df <- do.call('rbind',repwgt_list)
 schedule <- read_sheet('1x0dA4IFh_pLkXd5nsBIg5oYmBnqx5m7sGOL8_RllNWA',
                        range = 'Schedule!A:D') %>%
   rename(week = Week) %>%
-  filter(week %in% c(2,6,10,13,14,17,19,21)) %>%
-  mutate(monthnum = month(Time_Period_Begin) - 4,
-         monthname = month(Time_Period_Begin,label = TRUE)) %>%
-  select(Phase,week,monthnum,monthname) 
+  filter(week %in% c(2,6,10,13,14,17,19,21,22,24,26)) %>%
+  mutate(year = year(Time_Period_Begin),
+         monthname = month(Time_Period_Begin,label = TRUE),
+         yearmonth = paste0(year(Time_Period_Begin),' ',month(Time_Period_Begin, label = T, abbr = F))) %>%
+  select(Phase,week,year,monthname,yearmonth)
 
   
