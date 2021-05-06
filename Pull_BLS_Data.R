@@ -7,7 +7,9 @@ library(blsAPI)
 
 states <- read.csv('https://gist.githubusercontent.com/dantonnoriega/bf1acd2290e15b91e6710b6fd3be0a53/raw/11d15233327c8080c9646c7e1f23052659db251d/us-state-ansi-fips.csv',
                    colClasses = 'character',
-                   strip.white = T)
+                   strip.white = T) %>%
+  rename(fips = st,
+         state = stname)
 
 measures <- data.frame(code = c('03','04','05','06','07','08','09'),
                        measure = c('unemployment rate','unemployment count','employment count',
@@ -23,7 +25,7 @@ product <- 'LAU'
 #Set area we're interested in, in this case every state
 
 
-areas <- data.frame(paste0('ST',states$st,'00000000000'),states$stusps)
+areas <- data.frame(paste0('ST',states$fips,'00000000000'),states$stusps)
 
 colnames(areas) <- c('code','state')
 
@@ -67,14 +69,14 @@ df3 <- blsAPI(payload3,return_data_frame = TRUE)
 unemprate <- df1 %>%
   rbind(df2) %>%
   rbind(df3) %>%
-  mutate(st = substr(seriesID,6,7),
+  mutate(fips = substr(seriesID,6,7),
          code = substr(seriesID,19,20),
          value = as.numeric(value),
          month = substr(periodName,0,3)) %>%
   left_join(measures, by = 'code') %>%
-  left_join(states, by = 'st') %>%
-  mutate(state = stusps) %>%
-  select(year,month,value,measure,state)
+  left_join(states, by = 'fips') %>%
+  mutate(yearmonth = paste0(year,' ',periodName)) %>%
+  select(yearmonth,value,measure,state)
 
 ## Pull unemployment total
 
@@ -115,14 +117,14 @@ df3 <- blsAPI(payload3,return_data_frame = TRUE)
 unemplevel <- df1 %>%
   rbind(df2) %>%
   rbind(df3) %>%
-  mutate(st = substr(seriesID,6,7),
+  mutate(fips = substr(seriesID,6,7),
          code = substr(seriesID,19,20),
          value = as.numeric(value),
          month = substr(periodName,0,3)) %>%
   left_join(measures, by = 'code') %>%
-  left_join(states, by = 'st') %>%
-  mutate(state = stusps) %>%
-  select(year,month,value,measure,state)
+  left_join(states, by = 'fips') %>%
+  mutate(yearmonth = paste0(year,' ',periodName)) %>%
+  select(yearmonth,value,measure,state)
 
 ## Pull civ noninstitutional total
 
@@ -163,11 +165,11 @@ df3 <- blsAPI(payload3,return_data_frame = TRUE)
 civtotal <- df1 %>%
   rbind(df2) %>%
   rbind(df3) %>%
-  mutate(st = substr(seriesID,6,7),
+  mutate(fips = substr(seriesID,6,7),
          code = substr(seriesID,19,20),
          value = as.numeric(value),
          month = substr(periodName,0,3)) %>%
   left_join(measures, by = 'code') %>%
-  left_join(states, by = 'st') %>%
-  mutate(state = stusps) %>%
-  select(year,month,value,measure,state)
+  left_join(states, by = 'fips') %>%
+  mutate(yearmonth = paste0(year,' ',periodName)) %>%
+  select(yearmonth,value,measure,state)
