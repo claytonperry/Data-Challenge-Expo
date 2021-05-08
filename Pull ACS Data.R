@@ -15,4 +15,4 @@ Sys.setenv(CENSUS_API_KEY = '5dc30770cc0133357b32b987a7bdd7f51e1b4a80')
 
 #example loading PUMS
 acs_1yr_19_pums <- get_pums(variables = c('SEX',"AGEP",'ESR','COW', 'RAC1P','NWAV','SCHL','FESRP','HISP','POWSP','ST','PWGTP'),
-                            state = 'all', survey = "acs1", year = 2019, recode ="TRUE", rep_weights = 'person')
+                            state = 'all', survey = "acs1", year = 2019, recode ="TRUE", rep_weights = 'person', show_call = T)
