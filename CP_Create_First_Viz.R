@@ -3,11 +3,10 @@
 #  2. Pull Covid Data.R
 #  3. Pull_BLS_Data.R
 
-states <- read.csv('https://gist.githubusercontent.com/dantonnoriega/bf1acd2290e15b91e6710b6fd3be0a53/raw/11d15233327c8080c9646c7e1f23052659db251d/us-state-ansi-fips.csv',
-                   colClasses = 'character',
-                   strip.white = T) %>%
-  rename(fips = st,
-         state = stname)
+states <- unique(tidycensus::fips_codes[,1:3])[0:51,] %>%
+  rename(stusps = state,
+         fips = state_code,
+         state = state_name)
 
 df <- puf_df %>%
   group_by(EST_ST,WEEK) %>%
@@ -32,9 +31,3 @@ df <- puf_df %>%
 
 write_sheet(df, ss = '1M_WzK_o4eRZm1aLTX3Ey7P-jXQsxjBwO4MXD4gdaGWw', sheet = 'Sheet1')
 
-
-length(unique(df$state))
-summary(empvalue)
-length(is.null(df$empvalue))
-
-summary(df$empvalue[df$state=='Georgia'])
