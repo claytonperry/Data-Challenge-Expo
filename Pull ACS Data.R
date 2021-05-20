@@ -14,5 +14,11 @@ Sys.setenv(CENSUS_API_KEY = '5dc30770cc0133357b32b987a7bdd7f51e1b4a80')
 # ACS 2019 PUMS Data Dictionary: https://www2.census.gov/programs-surveys/acs/tech_docs/pums/data_dict/PUMS_Data_Dictionary_2019.pdf
 
 #example loading PUMS
-acs_1yr_19_pums <- get_pums(variables = c('SEX',"AGEP",'ESR','COW', 'RAC1P','NWAV','SCHL','FESRP','HISP','POWSP','ST','PWGTP'),
-                            state = 'all', survey = "acs1", year = 2019, recode ="TRUE", rep_weights = 'person')
+acs_list <- list()
+
+for (i in (unique(tidycensus::fips_codes$state)[0:51])) {
+acs_list[[i]] <- get_pums(variables = c('SEX',"AGEP",'ESR','COW', 'RAC1P','NWAV','SCHL','FESRP','HISP','POWSP','ST','PWGTP','PUMA'),
+                            state = i, survey = "acs1", year = 2019, recode ="TRUE", rep_weights = 'person')
+}
+
+acs_19_1yr_pums <- do.call(rbind,acs_list)
