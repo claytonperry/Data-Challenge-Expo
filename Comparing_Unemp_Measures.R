@@ -27,9 +27,31 @@ df <- puf_df %>%
          bls_hhp_unemp_prop = bls_unemp_n/hhp_total_unemp_n,
          adj_covid_unemp_n = bls_hhp_unemp_prop*hhp_covid_unemp_n,
          adj_covid_unemp_rt = adj_covid_unemp_n/bls_civpop,
-         adj_covid_unemp_prop = adj_covid_unemp_rt/bls_unemp_rt) %>%
+         adj_covid_unemp_prop = adj_covid_unemp_n/bls_unemp_n) %>%
   ungroup() %>%
   select(state, yearmonth, bls_civpop, bls_unemp_n, hhp_total_unemp_n, bls_hhp_unemp_prop, bls_unemp_rt, bls_unemp_rt_calc, hhp_total_unemp_rt,
          hhp_covid_unemp_n, hhp_covid_unemp_rt, hhp_covid_unemp_prop, adj_covid_unemp_n, adj_covid_unemp_rt, adj_covid_unemp_prop)
 
 write_sheet(df, ss = '1-bP6OPVrStqe0O_tlzFG3QYLXRfOdqg-4lYvXEraXfI', sheet = 'Compare Unemp')  
+
+summary(df$hhp_total_unemp_rt-df$bls_unemp_rt)
+
+
+#########
+
+# Finding completeness in HHPulse data
+`%notin%` <- Negate(`%in%`)
+
+empvarswork <- puf_df %>%
+  rename(week = WEEK) %>%
+  mutate(fips = str_pad(EST_ST,2,side = 'left',pad = '0')) %>%
+  inner_join(states, by = 'fips') %>%
+  left_join(schedule, by = 'week') %>%
+  group_by(stusps,week) %>%
+  summarise(n = n(),
+            anywork_notNA_n = sum(ANYWORK %notin% c(-88,-99)),
+            anywork_notNA_prop = sum(ANYWORK %notin% c(-88,-99))/n(),
+            rsnnowrk_notNA_n = sum(RSNNOWRK %notin% c(-88,-99)),
+            rsnnowrk_notNA_prop = sum(RSNNOWRK  %notin% c(-88,-99))/sum(ANYWORK == 2))
+
+write_sheet(empvarswork, ss = '1-bP6OPVrStqe0O_tlzFG3QYLXRfOdqg-4lYvXEraXfI', sheet = 'Emp Vars Completeness')  
