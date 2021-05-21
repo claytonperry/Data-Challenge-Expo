@@ -34,8 +34,13 @@ confmonthly <- read.csv('https://raw.githubusercontent.com/CSSEGISandData/COVID-
   group_by(state,county,yearmonth) %>%
   summarise(ccases = max(zcases)) %>%
   ungroup() %>%
-  group_by(state,yearmonth) %>%
-  summarise(cases = sum(ccases))
+  inner_join(schedule, by = 'yearmonth') %>%
+  group_by(state,year,monthname,yearmonth) %>%
+  summarise(cases = sum(ccases)) %>%
+  ungroup() %>%
+  group_by(state) %>%
+  mutate(newcases = cases - lag(cases,default = 0)) %>%
+  select(state, yearmonth, cases, newcases)
 
 deathmonthly <- read.csv('https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_US.csv') %>%
   select(6,7,starts_with('X')) %>%
@@ -48,10 +53,19 @@ deathmonthly <- read.csv('https://raw.githubusercontent.com/CSSEGISandData/COVID
   group_by(state,county,yearmonth) %>%
   summarise(cdeaths = max(zdeaths)) %>%
   ungroup() %>%
-  group_by(state,yearmonth) %>%
-  summarise(deaths = sum(cdeaths))
+  inner_join(schedule, by = 'yearmonth') %>%
+  group_by(state,year,monthname,yearmonth) %>%
+  summarise(deaths = sum(cdeaths)) %>%
+  ungroup() %>%
+  group_by(state) %>%
+  mutate(newdeaths = deaths - lag(deaths,default = 0))%>%
+  select(state, yearmonth, deaths, newdeaths)
 
 #final dataframes have columns for state, date, and confirmed cases or deaths
+
+
+
+
 
 #4/20: Chrys edit (this doesn't work yet...)
 #create estimates for monthly covid cases and deaths
