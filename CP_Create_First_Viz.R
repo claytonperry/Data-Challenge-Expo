@@ -10,20 +10,32 @@ states <- unique(tidycensus::fips_codes[,1:3])[0:51,] %>%
 
 df <- puf_df %>%
   group_by(EST_ST,WEEK) %>%
-  summarise(total_pop_n = sum(PWEIGHT),
-            total_unemp_n = sum(PWEIGHT[ANYWORK == 2]),
-            covid_unemp_n = sum(PWEIGHT[RSNNOWRK %in% c(8,9,10,11)])) %>%
+  summarise(hhp_total_unemp_n = sum(PWEIGHT[ANYWORK == 2]),
+            hhp_covid_unemp_n = sum(PWEIGHT[RSNNOWRK %in% c(8,9,10,11)])) %>%
   rename(week = WEEK) %>%
   mutate(fips = str_pad(EST_ST,2,side = 'left',pad = '0')) %>%
   full_join(states, by = 'fips') %>%
   inner_join(schedule, by = 'week') %>%
   inner_join(civtotal, by = c('yearmonth','state')) %>%
-  rename(civpop = value) %>%
-  mutate(covid_unemp_rt = covid_unemp_n/civpop,
-         total_unemp_rt = total_unemp_n/civpop,
-         covid_unemp_prop = covid_unemp_n/total_unemp_n) %>%
+  rename(bls_civpop = value) %>%
+  mutate(hhp_total_unemp_rt = hhp_total_unemp_n/bls_civpop,
+         hhp_covid_unemp_rt = hhp_covid_unemp_n/bls_civpop,
+         hhp_covid_unemp_prop = hhp_covid_unemp_n/hhp_total_unemp_n) %>%
+  inner_join(unemprate, by = c('yearmonth','state')) %>%
+  rename(bls_unemp_rt = value) %>%
+  inner_join(unemplevel, by = c('yearmonth','state')) %>%
+  rename(bls_unemp_n = value) %>%
+  mutate(bls_unemp_rt = bls_unemp_rt *0.01,
+         bls_unemp_rt_calc = bls_unemp_n/bls_civpop, 
+         bls_hhp_unemp_prop = bls_unemp_n/hhp_total_unemp_n,
+         adj_covid_unemp_n = bls_hhp_unemp_prop*hhp_covid_unemp_n,
+         adj_covid_unemp_rt = adj_covid_unemp_n/bls_civpop,
+         adj_covid_unemp_prop = adj_covid_unemp_n/bls_unemp_n) %>%
   ungroup() %>%
-  select(state, yearmonth, monthname, covid_unemp_rt, total_unemp_rt, covid_unemp_prop) %>%
+  select(state, yearmonth, monthname, 
+         hhp_covid_unemp_rt, hhp_total_unemp_rt, hhp_covid_unemp_prop,
+         bls_unemp_rt, bls_unemp_rt_calc,
+         adj_covid_unemp_rt, adj_covid_unemp_prop) %>%
   gather('empmeasurement','empvalue',-c(1:3)) %>%
   inner_join(confmonthly, by = c('yearmonth', 'state')) %>%
   inner_join(deathmonthly, by = c('yearmonth', 'state')) %>%
