@@ -173,3 +173,51 @@ civtotal <- df1 %>%
   left_join(states, by = 'fips') %>%
   mutate(yearmonth = paste0(year,' ',periodName)) %>%
   select(yearmonth,value,measure,state)
+
+## Pull labor force total
+
+measurement <- measures %>%
+  filter(measure == 'labor force') %>%
+  pull(code)
+
+#Put it all together as seriesIDs
+
+
+series1 <- paste0(product,areas$code[areas$state <= 'MO'],measurement)
+series2 <- paste0(product,areas$code[areas$state > 'MO' & areas$state < 'WY'],measurement)
+series3 <- paste0(product,areas$code[areas$state == 'WY'],measurement)
+
+#Create API payload
+
+payload1 <- list('seriesid' = series1,
+                 'startyear' = 2020,
+                 'endyear' = 2021)
+
+payload2 <- list('seriesid' = series2,
+                 'startyear' = 2020,
+                 'endyear' = 2021)
+
+payload3 <- list('seriesid' = series3,
+                 'startyear' = 2020,
+                 'endyear' = 2021)
+
+#pull API response from payload
+
+df1 <- blsAPI(payload1,return_data_frame = TRUE)
+
+df2 <- blsAPI(payload2,return_data_frame = TRUE)
+
+df3 <- blsAPI(payload3,return_data_frame = TRUE)
+
+
+labforce <- df1 %>%
+  rbind(df2) %>%
+  rbind(df3) %>%
+  mutate(fips = substr(seriesID,6,7),
+         code = substr(seriesID,19,20),
+         value = as.numeric(value),
+         month = substr(periodName,0,3)) %>%
+  left_join(measures, by = 'code') %>%
+  left_join(states, by = 'fips') %>%
+  mutate(yearmonth = paste0(year,' ',periodName)) %>%
+  select(yearmonth,value,measure,state)
