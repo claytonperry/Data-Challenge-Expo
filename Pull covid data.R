@@ -1,3 +1,15 @@
+
+#install.packages('tidyverse')
+#install.packages('stringr')
+#install.packages('googledrive')
+#install.packages('googlesheets4')
+#install.packages('lubridate')
+library(tidyverse)
+library(stringr)
+library(googledrive)
+library(googlesheets4)
+library(lubridate)
+
 conf_raw <- read.csv('https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv')
 death_raw <- read.csv('https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_US.csv')
 
