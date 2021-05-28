@@ -47,7 +47,7 @@ conf_month <- conf %>%
 
 
 ########### Clay taking over
-install.packages('modelr')
+#install.packages('modelr')
 #install.packages('tidymodels')
 
 
@@ -67,11 +67,13 @@ analytic <- schedule %>%
              by = 'week') %>%
   full_join(states, by = 'fips') %>%
   inner_join(confmonthly, by = c('yearmonth', 'state')) %>%
-  select(Imsi, sex, stusps, yearmonth, newconf, PWEIGHT)
+  select(Imsi, sex, stusps, yearmonth, newcases, PWEIGHT)
 
 
 results <- analytic %>%
   group_by(stusps) %>%
-  do(tidy(glm(Imsi ~ newconf + sex, weights = PWEIGHT, family = binomial, data = .)))
+  do(tidy(glm(Imsi ~ newcases + sex, weights = PWEIGHT, family = binomial, data = .)))
+
+predict(results)
 
 write_sheet(results, ss = '1wZFsYoKQyGQJPBU0dqJq0gI8CHadbWUfaUFVzHV6It0', sheet = 'Model 1 (SS)')
