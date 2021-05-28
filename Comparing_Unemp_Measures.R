@@ -4,10 +4,16 @@
 # Pull_BLS_Data.R
 # Pull HH Pulse Data into R.R
 
+#install.packages('tidyverse')
+#install.packages('googlesheets4')
+
+library(tidyverse)
+library(googlesheets4)
 
 df <- puf_df %>%
   group_by(EST_ST,WEEK) %>%
-  summarise(hhp_total_unemp_n = sum(PWEIGHT[ANYWORK == 2]),
+  summarise(hhp_labforce = sum(PWEIGHT[ANYWORK %in% c(1,2)]),
+            hhp_total_unemp_n = sum(PWEIGHT[ANYWORK == 2]),
             hhp_covid_unemp_n = sum(PWEIGHT[RSNNOWRK %in% c(8,9,10,11)])) %>%
   rename(week = WEEK) %>%
   mutate(fips = str_pad(EST_ST,2,side = 'left',pad = '0')) %>%
@@ -29,7 +35,7 @@ df <- puf_df %>%
          adj_covid_unemp_rt = adj_covid_unemp_n/bls_labforce,
          adj_covid_unemp_prop = adj_covid_unemp_n/bls_unemp_n) %>%
   ungroup() %>%
-  select(state, yearmonth, bls_labforce, bls_unemp_n, hhp_total_unemp_n, bls_hhp_unemp_prop, bls_unemp_rt, bls_unemp_rt_calc, hhp_total_unemp_rt,
+  select(state, yearmonth, bls_labforce, hhp_labforce, bls_unemp_n, hhp_total_unemp_n, bls_hhp_unemp_prop, bls_unemp_rt, bls_unemp_rt_calc, hhp_total_unemp_rt,
          hhp_covid_unemp_n, hhp_covid_unemp_rt, hhp_covid_unemp_prop, adj_covid_unemp_n, adj_covid_unemp_rt, adj_covid_unemp_prop)
 
 write_sheet(df, ss = '1-bP6OPVrStqe0O_tlzFG3QYLXRfOdqg-4lYvXEraXfI', sheet = 'Compare Unemp')  
