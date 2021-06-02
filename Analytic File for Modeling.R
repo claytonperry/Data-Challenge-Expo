@@ -39,41 +39,83 @@ conf_month <- conf %>%
 #merge pulse and conf_month data to get analytic file for part 1
   
   
-  
-  
-#######
-#PART 2
+puf_df %>%
+  rename(week = WEEK) %>%
+  inner_join(schedule, by = 'week') %>%
+  filter(ANYWORK %in% c(1,2)) %>%
+  mutate(Imsi = ifelse(RSNNOWRK %in% c(8,9,10,11), 1, 0)) %>%
+  summarise(sum(Imsi * PWEIGHT) / sum(PWEIGHT))
 
+analytic %>%
+  summarise(sum(Imsi * PWEIGHT) / sum(PWEIGHT))
+
+analytic %>%
+  summarise(sum(Imsi)/n())
 
 
 ########### Clay taking over
 #install.packages('modelr')
 #install.packages('tidymodels')
+#install.packages('memisc')
 
 
-library(tidyverse)
 library(tidymodels)
 library(modelr)
 library(broom)
+library(memisc)
+library(tidyverse)
+library(survey)
 
 analytic <- schedule %>%
   inner_join(puf_df %>%
                filter(ANYWORK %in% c(1,2)) %>%
                rename(week = WEEK) %>%
                mutate(fips = str_pad(EST_ST,2,side = 'left',pad = '0'),
-                      Imsi = ifelse(RSNNOWRK %in% c(9,8,10,11), 1, 0),
-                      sex = EGENDER - 1) %>%
-               select(Imsi,sex,week,fips, PWEIGHT),
+                      Imsi = as.integer(ifelse(RSNNOWRK %in% c(8,9,10,11), 1, 0)),
+                      sex = EGENDER - 1,
+                      weight = PWEIGHT/sum(PWEIGHT)) %>%
+               select(Imsi,sex,week,fips, PWEIGHT, weight),
              by = 'week') %>%
   full_join(states, by = 'fips') %>%
   inner_join(confmonthly, by = c('yearmonth', 'state')) %>%
-  select(Imsi, sex, stusps, yearmonth, newcases, PWEIGHT)
+  select(Imsi, sex, stusps, yearmonth, newcases, PWEIGHT, weight) %>%
+  mutate(id = row_number())
+
+glm_list <- list()
+predictions_list <- list()
+final_list <- list()
+
+d <- svydesign(ids = ~1, weights = ~PWEIGHT, data = analytic)
+
+for (i in unique(analytic$stusps)) {
+  glm_list[[i]] <- svyglm(Imsi ~ newcases + sex, subset = stusps == i, design = d, family = binomial)
+  predictions_list[[i]] <- predict(glm_list[[i]], type = 'response')
+  attributes(predictions_list[[i]]) <- NULL
+  predictions_list[[i]] <- data.frame(state = i,predict = predictions_list[[i]])
+  final_list[[i]] <- cbind(analytic %>% filter(stusps == i),predictions_list[[i]])
+  }
+
+expected_v_df <- do.call('rbind',final_list)
+
+expected_v_df %>%
+  summarise(sum(Imsi * PWEIGHT)/sum(predict * PWEIGHT))
 
 
-results <- analytic %>%
-  group_by(stusps) %>%
-  do(tidy(glm(Imsi ~ newcases + sex, weights = PWEIGHT, family = binomial, data = .)))
+d <- svydesign(ids = ~1, weights = ~PWEIGHT, data = analytic)
 
-predict(results)
+glm <- svyglm(Imsi ~ newcases + sex, design = d, subset = stusps == 'AL', family = binomial)
+
+summary(glm)
+
+summary(predict(glm, type = 'response'))
+
+results_list <- list()
+
+for (i in unique(analytic$stusps)) {
+  a <- tidy(svyglm(Imsi ~ newcases + sex, subset = stusps == i, design = d, family = binomial))
+  results_list[[i]] <- cbind(i,a)
+}
+
+results <- do.call('rbind',results_list)
 
 write_sheet(results, ss = '1wZFsYoKQyGQJPBU0dqJq0gI8CHadbWUfaUFVzHV6It0', sheet = 'Model 1 (SS)')
