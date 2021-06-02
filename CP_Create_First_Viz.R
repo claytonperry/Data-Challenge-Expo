@@ -40,4 +40,3 @@ df <- puf_df %>%
   inner_join(deathmonthly, by = c('yearmonth', 'state'))
 
 write_sheet(df, ss = '1M_WzK_o4eRZm1aLTX3Ey7P-jXQsxjBwO4MXD4gdaGWw', sheet = 'Sheet1')
-
