@@ -109,6 +109,13 @@ summary(glm)
 
 summary(predict(glm, type = 'response'))
 
+results_list <- list()
+
+for (i in unique(analytic$stusps)) {
+  a <- tidy(svyglm(Imsi ~ newcases + sex, subset = stusps == i, design = d, family = binomial))
+  results_list[[i]] <- cbind(i,a)
+}
+
 results <- do.call('rbind',results_list)
 
 write_sheet(results, ss = '1wZFsYoKQyGQJPBU0dqJq0gI8CHadbWUfaUFVzHV6It0', sheet = 'Model 1 (SS)')
