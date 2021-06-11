@@ -12,15 +12,16 @@ library(broom)
 library(googlesheets4)
 library(labelled)
 library(dplyr)
- 
+
+attach()
 #build analyic dataframe
 
 analytic2 <- schedule %>% #start with schedule 
   inner_join(confmonthly, by = 'yearmonth') %>% #join in monthly new confirms for relevant months
-  inner_join(zap_labels(CPS), by = c('yearmonth', 'state')) %>% #join in CPS data
+  inner_join(CPS, by = c('yearmonth', 'state')) %>% #join in CPS data
   filter(LABFORCE %in% c(1,2)) %>% #filter for individuals with relevant LABFORCE values
   mutate(CLF = ifelse(LABFORCE == 1, 0, 1)) %>% #create dependent variable
-  select(CLF, SEX, WTFINL, newcases, yearmonth, stusps) %>% #retain relevant variables
+  select(CLF, SEX, WTFINL, newcases, yearmonth, state) %>% #retain relevant variables
   remove_attributes(.,c('label','var_desc'))
   
 #create empty lists to hold state-wise GLMs, predictions, and final dataframes for comparing predictions to actuals
@@ -35,12 +36,11 @@ d_unweight <- svydesign(ids = ~1,  data = analytic2)
 
 #run state-wise loop to produce final dataframes
 
-for (i in unique(analytic2$stusps)) {
-  glm_list[[i]] <- svyglm(CLF ~ newcases + SEX, subset = stusps == i, design = d_unweight, family = binomial)
+for (i in unique(analytic2$state)) {
+  glm_list[[i]] <- svyglm(CLF ~ newcases + SEX, subset = state == i, design = d_unweight, family = binomial)
   predictions_list[[i]] <- predict(glm_list[[i]], type = 'response')
   attributes(predictions_list[[i]]) <- NULL
-  predictions_list[[i]] <- data.frame(state = i,predict = predictions_list[[i]])
-  final_list[[i]] <- cbind(analytic2 %>% filter(stusps == i),predictions_list[[i]])
+  final_list[[i]] <- cbind(analytic2 %>% filter(state == i),data.frame(predict = predictions_list[[i]]))
 }
 
 #combine final dataframes to national comparison set
@@ -66,8 +66,8 @@ results_list <- ls()
 
 #create statewise dataframes of coefficient estimates and significance via loop
 
-for (i in unique(analytic2$stusps)) {
-  a <- tidy(svyglm(CLF ~ newcases + SEX, subset = stusps == i, design = d_unweight, family = binomial))
+for (i in unique(analytic2$state)) {
+  a <- tidy(svyglm(CLF ~ newcases + SEX, subset = state == i, design = d_unweight, family = binomial))
   results_list[[i]] <- cbind(i,a)
 }
 
@@ -94,12 +94,11 @@ d_weight <- svydesign(ids = ~1, weights = ~WTFINL, data = analytic2)
 
 #run state-wise loop to produce final dataframes
 
-for (i in unique(analytic2$stusps)) {
-  glm_list[[i]] <- svyglm(CLF ~ newcases + SEX, subset = stusps == i, design = d_weight, family = binomial)
+for (i in unique(analytic2$state)) {
+  glm_list[[i]] <- svyglm(CLF ~ newcases + SEX, subset = state == i, design = d_weight, family = binomial)
   predictions_list[[i]] <- predict(glm_list[[i]], type = 'response')
   attributes(predictions_list[[i]]) <- NULL
-  predictions_list[[i]] <- data.frame(state = i,predict = predictions_list[[i]])
-  final_list[[i]] <- cbind(analytic2 %>% filter(stusps == i),predictions_list[[i]])
+  final_list[[i]] <- cbind(analytic2 %>% filter(state == i),data.frame(predict = predictions_list[[i]]))
 }
 
 #combine final dataframes to national comparison set
@@ -115,7 +114,7 @@ weight_v_df %>%
 #check predictino vs reality by state and sex
 
 weight_v_df %>%
-  group_by(stusps,SEX) %>%
+  group_by(state,SEX) %>%
   summarise(sum(CLF * WTFINL)/sum(predict * WTFINL)) %>%
   range_write(., ss = '1eDMiNvb8-3oa_nYIBRMtsbVFIrMGhsOv-tghR5y-SKg', sheet = 'weight checks', range = 'B:D')
 
@@ -125,8 +124,8 @@ results_list <- ls()
 
 #create statewise dataframes of coefficient estimates and significance via loop
 
-for (i in unique(analytic2$stusps)) {
-  a <- tidy(svyglm(CLF ~ newcases + SEX, subset = stusps == i, design = d_weight, family = binomial))
+for (i in unique(analytic2$state)) {
+  a <- tidy(svyglm(CLF ~ newcases + SEX, subset = state == i, design = d_weight, family = binomial))
   results_list[[i]] <- cbind(i,a)
 }
 
@@ -137,3 +136,10 @@ results <- do.call('rbind',results_list)
 #write coefficients to a google sheets tab
 
 write_sheet(results, ss = '1eDMiNvb8-3oa_nYIBRMtsbVFIrMGhsOv-tghR5y-SKg', sheet = 'weighted')
+
+#make state-month predictions
+
+model2monthly <- weight_v_df %>%
+  group_by(state,yearmonth) %>%
+  summarise(labforce_predict = sum(predict*WTFINL))
+
