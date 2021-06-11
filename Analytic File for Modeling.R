@@ -109,6 +109,9 @@ results <- do.call('rbind',results_list)
 
 write_sheet(results, ss = '1wZFsYoKQyGQJPBU0dqJq0gI8CHadbWUfaUFVzHV6It0', sheet = 'Model 1 (SS)')
 
+model1monthly %>%
+  group_by(state,yearmonth) %>%
+  summarise(unemp_predict = sum(predict*PWEIGHT))
 
 
 #Model Estimates
@@ -145,6 +148,6 @@ range_write(model1monthly, ss = '1wZFsYoKQyGQJPBU0dqJq0gI8CHadbWUfaUFVzHV6It0', 
 
 HHP_statemonth <- analytic %>%
   group_by(state,yearmonth) %>%
-  summarise(HHP_statemonth = sum(predict*PWEIGHT))
+  summarise(HHP_statemonth = sum(Imsi*PWEIGHT))
 
 range_write(model1monthly, ss = '1wZFsYoKQyGQJPBU0dqJq0gI8CHadbWUfaUFVzHV6It0', sheet = 'SS1.0 Part 1 Estimates', range = 'L1')
