@@ -37,6 +37,9 @@ df <- puf_df %>%
          bls_unemp_rt, bls_unemp_rt_calc,
          adj_covid_unemp_rt, adj_covid_unemp_prop) %>%
   inner_join(confmonthly, by = c('yearmonth', 'state')) %>%
-  inner_join(deathmonthly, by = c('yearmonth', 'state'))
+  inner_join(deathmonthly, by = c('yearmonth', 'state')) %>%
+  inner_join(model1monthly, by = c('yearmonth', 'state')) %>%
+  inner_join(model2monthly, by = c('yearmonth', 'state')) %>%
+  mutate(predict_unemp = unemp_predict / labforce_predict)
 
 write_sheet(df, ss = '1M_WzK_o4eRZm1aLTX3Ey7P-jXQsxjBwO4MXD4gdaGWw', sheet = 'Sheet1')
