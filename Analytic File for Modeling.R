@@ -62,7 +62,6 @@ analytic %>%
 library(tidymodels)
 library(modelr)
 library(broom)
-library(memisc)
 library(tidyverse)
 library(survey)
 
@@ -78,7 +77,7 @@ analytic <- schedule %>%
              by = 'week') %>%
   full_join(states, by = 'fips') %>%
   inner_join(confmonthly, by = c('yearmonth', 'state')) %>%
-  select(Imsi, sex, stusps, yearmonth, newcases, PWEIGHT, weight) %>%
+  select(Imsi, sex, state, yearmonth, newcases, PWEIGHT, weight) %>%
   mutate(id = row_number())
 
 glm_list <- list()
@@ -87,12 +86,11 @@ final_list <- list()
 
 d <- svydesign(ids = ~1, weights = ~PWEIGHT, data = analytic)
 
-for (i in unique(analytic$stusps)) {
-  glm_list[[i]] <- svyglm(Imsi ~ newcases + sex, subset = stusps == i, design = d, family = binomial)
+for (i in unique(analytic$state)) {
+  glm_list[[i]] <- svyglm(Imsi ~ newcases + sex, subset = state == i, design = d, family = binomial)
   predictions_list[[i]] <- predict(glm_list[[i]], type = 'response')
   attributes(predictions_list[[i]]) <- NULL
-  predictions_list[[i]] <- data.frame(state = i,predict = predictions_list[[i]])
-  final_list[[i]] <- cbind(analytic %>% filter(stusps == i),predictions_list[[i]])
+  final_list[[i]] <- cbind(analytic %>% filter(state == i),data.frame(predict = predictions_list[[i]]))
   }
 
 expected_v_df <- do.call('rbind',final_list)
@@ -100,22 +98,19 @@ expected_v_df <- do.call('rbind',final_list)
 expected_v_df %>%
   summarise(sum(Imsi * PWEIGHT)/sum(predict * PWEIGHT))
 
-
-d <- svydesign(ids = ~1, weights = ~PWEIGHT, data = analytic)
-
-glm <- svyglm(Imsi ~ newcases + sex, design = d, subset = stusps == 'AL', family = binomial)
-
-summary(glm)
-
-summary(predict(glm, type = 'response'))
-
 results_list <- list()
 
-for (i in unique(analytic$stusps)) {
-  a <- tidy(svyglm(Imsi ~ newcases + sex, subset = stusps == i, design = d, family = binomial))
+for (i in unique(analytic$state)) {
+  a <- tidy(svyglm(Imsi ~ newcases + sex, subset = state == i, design = d, family = binomial))
   results_list[[i]] <- cbind(i,a)
 }
 
 results <- do.call('rbind',results_list)
 
 write_sheet(results, ss = '1wZFsYoKQyGQJPBU0dqJq0gI8CHadbWUfaUFVzHV6It0', sheet = 'Model 1 (SS)')
+
+#make state-month predictions
+
+model1monthly <- expected_v_df %>%
+  group_by(state,yearmonth) %>%
+  summarise(unemp_predict = sum(predict*PWEIGHT))
