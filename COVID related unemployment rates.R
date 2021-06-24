@@ -32,7 +32,7 @@ states <- read.csv('https://gist.githubusercontent.com/dantonnoriega/bf1acd2290e
                    colClasses = 'character',
                    strip.white = T) %>%
   rename(fips = st,
-         state = stusps)
+         state = stname)
 
 df <- puf_df %>%
   group_by(EST_ST,WEEK) %>%
@@ -48,6 +48,7 @@ df <- puf_df %>%
   inner_join(schedule, by = 'week') %>%
   ungroup() %>%
   select(state, week, monthname, covid_unemp_rt, total_unemp_rt, covid_unemp_prop) %>%
-  gather('measurement','value',-c(1:3))
+  gather('measurement','value',-c(1:3)) %>%
+  inner_join(confmonthly, by = c('yearmonth', 'state'))
 
 write_sheet(df, ss = '1M_WzK_o4eRZm1aLTX3Ey7P-jXQsxjBwO4MXD4gdaGWw', sheet = 'Sheet1')
