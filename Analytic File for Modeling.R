@@ -150,4 +150,4 @@ HHP_statemonth <- analytic %>%
   group_by(state,yearmonth) %>%
   summarise(HHP_statemonth = sum(Imsi*PWEIGHT))
 
-range_write(model1monthly, ss = '1wZFsYoKQyGQJPBU0dqJq0gI8CHadbWUfaUFVzHV6It0', sheet = 'SS1.0 Part 1 Estimates', range = 'L1')
+range_write(HHP_statemonth, ss = '1wZFsYoKQyGQJPBU0dqJq0gI8CHadbWUfaUFVzHV6It0', sheet = 'SS1.0 Part 1 Estimates', range = 'L1')
