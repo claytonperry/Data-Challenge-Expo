@@ -19,19 +19,31 @@ confdaily <- read.csv('https://raw.githubusercontent.com/CSSEGISandData/COVID-19
   select(7,starts_with('X')) %>%
   gather(zdate, zcases, -1) %>%
   mutate(date = strptime(sub('X','',zdate),format = '%m.%d.%y'),
-          state = Province_State) %>%
-  select(state,date,zcases) %>%
-  group_by(state,date) %>%
-  summarise(cases = sum(zcases))
+          state = Province_State, 
+         yearmonth = paste0(year(date), ' ',month(date, label = T, abbr = F))) %>%
+  select(state,yearmonth,date,zcases) %>%
+  group_by(state,yearmonth,date) %>%
+  summarise(cases_d = sum(zcases)) %>%
+  ungroup() %>%
+  arrange(state,date) %>%
+  group_by(state) %>%
+  mutate(newcases_d = cases_d - lag(cases_d,default = 0)) %>%
+  select(state, yearmonth, date, cases_d, newcases_d)
 
 deathdaily <- read.csv('https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_US.csv') %>%
   select(7,starts_with('X')) %>%
   gather(zdate, zdeaths, -1) %>%
   mutate(date = strptime(sub('X','',zdate),format = '%m.%d.%y'),
-         state = Province_State) %>%
-  select(state,date,zdeaths) %>%
-  group_by(state,date) %>%
-  summarise(deaths = sum(zdeaths))
+         state = Province_State, 
+         yearmonth = paste0(year(date), ' ',month(date, label = T, abbr = F))) %>%
+  select(state,yearmonth,date,zdeaths) %>%
+  group_by(state,yearmonth,date) %>%
+  summarise(deaths_d = sum(zdeaths)) %>%
+  ungroup() %>%
+  arrange(state,date) %>%
+  group_by(state) %>%
+  mutate(newdeaths_d = deaths_d - lag(deaths_d,default = 0)) %>%
+  select(state, yearmonth, date, deaths_d, newdeaths_d)
 
 # Create monthly state aggregated datasets
 

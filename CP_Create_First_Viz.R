@@ -40,6 +40,9 @@ df <- puf_df %>%
   inner_join(deathmonthly, by = c('yearmonth', 'state')) %>%
   inner_join(model1monthly, by = c('yearmonth', 'state')) %>%
   inner_join(model2monthly, by = c('yearmonth', 'state')) %>%
-  mutate(predict_unemp = unemp_predict / labforce_predict)
+  mutate(predict_unemp = unemp_predict / labforce_predict) %>%
+  inner_join(confdaily, by = c('yearmonth','state')) %>%
+  inner_join(deathdaily, by = c('yearmonth','date','state')) %>%
+  inner_join(restrictions, by = c('date','state'))
 
 write_sheet(df, ss = '1M_WzK_o4eRZm1aLTX3Ey7P-jXQsxjBwO4MXD4gdaGWw', sheet = 'Sheet1')
