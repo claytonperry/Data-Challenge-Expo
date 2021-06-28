@@ -30,12 +30,12 @@ z1  <- function(x, na.rm = FALSE) (fade1 * l1_ind)
 z2  <- function(x, na.rm = FALSE) (fade2 * l2_ind)
 z3  <- function(x, na.rm = FALSE) (fade3 * l3_ind)
 
-comprehensive1 <- function(x, na.rm = FALSE) ((1/ (1 + exp(d - min(d[x == 1]) - 8))) * ifelse(x = 1, 1, 0))
-comprehensive2 <- function(x, na.rm = FALSE) ((1/ (1 + exp(d - min(d[x == 2]) - 8))) * ifelse(x = 2, 1, 0))
-comprehensive3 <- function(x, na.rm = FALSE) ((1/ (1 + exp(d - min(d[x == 3]) - 8))) * ifelse(x = 3, 1, 0))
+comprehensive1 <- function(x, d, na.rm = FALSE) ((1/ (1 + exp(d - min(d[x == 1]) - 8))) * ifelse(x = 1, 1, 0))
+comprehensive2 <- function(x, d, na.rm = FALSE) ((1/ (1 + exp(d - min(d[x == 2]) - 8))) * ifelse(x = 2, 1, 0))
+comprehensive3 <- function(x, d, na.rm = FALSE) ((1/ (1 + exp(d - min(d[x == 3]) - 8))) * ifelse(x = 3, 1, 0))
 
-st_pop <- acs_2019_1yr_pums %>%
-  group_by(ST) %>%
+st_pop <- acs_19_1yr_pums %>%
+  group_by(state) %>%
   summarise(pop = sum(PWGTP))
 
 analytic2_1 <- st_pop %>%
@@ -60,8 +60,8 @@ analytic2_1 <- st_pop %>%
          across('C', list(z1 = z1, z2 = z2, z3 = z3)))
 
 ## COMPREHENSIVE FUNCTION VERSION
-  
-  analytic2_1 <- st_pop %>%
+
+  analytic2_0 <- st_pop %>%
     inner_join(confdaily, by = 'state') %>%
     inner_join(restrictions, by = c('state','date')) %>%
     group_by(state) %>%
@@ -74,9 +74,11 @@ analytic2_1 <- st_pop %>%
            x1d = ifelse(d >= 150,
                         sfd * sinfd,
                         (d/150) * (0.5 * (sin((150/20.69) - 1.82) + 1)) * (abs(150 - 183)/366) + 0.5),
-           cds = newcases/pop) %>%
+           cds = newcases_d/pop)
+    
+  analytic2_1 <- analytic2_0 %>%
     group_by(state) %>%
-    mutate(across('C',list(z1 = comprehensive1, z2 = comprehensive2, z3 = comprehensive3))) %>%
+    mutate(across(C1:C8,list(z1 = comprehensive1(.,'d'), z2 = comprehensive2(.,'d'), z3 = comprehensive3(.,'d')))) %>%
     ungroup()
   
 # Step 2: Define Survey Design
