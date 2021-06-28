@@ -92,11 +92,11 @@ final_list <- list()
 # Step 4: Run loop through states
 
 for (i in unique(analytic2_1$state)) {
-  glm_list[[i]] <- glm(cds ~ x1d + z1_1 + z1_2 + z1_3 +
-                       z2_1 + z2_2 + z2_3 + z3_1 + z3_2 + z3_3 +
-                       z4_1 + z4_1 + z4_3 + z5_1 + z5_1 + z5_3 +
-                       z6_1 + z6_1 + z6_3 + z7_1 + z7_1 + z7_3 +
-                       z8_1 + z8_1 + z8_3, family = gamma())
+  glm_list[[i]] <- glm(cds ~ x1d + C1_z1 + C1_z2 + C1_z3 +
+                         C2_z1 + C2_z2 + C2_z3 + C3_z1 + C3_z2 + C3_z3 +
+                         C4_z1 + C4_z2 + C4_z3 + C5_z1 + C5_z2 + C5_z3 +
+                         C6_z1 + C6_z2 + C6_z3 + C1_z1 + C7_z2 + C7_z3 +
+                         C8_z1 + C8_z2 + C8_z3, family = gamma())
   predictions_list[[i]] <- predict(glm_list[[i]], type = 'response')
   attributes(predictions_list[[i]]) <- NULL
   final_list[[i]] <- cbind(analytic2 %>% filter(state == i),data.frame(predict = predictions_list[[i]]))
