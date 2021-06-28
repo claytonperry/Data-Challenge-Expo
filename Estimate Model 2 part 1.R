@@ -13,6 +13,24 @@ library(googlesheets4)
 library(labelled)
 library(dplyr)
 
+# Step 2: Create necessary functions
+l1_ind <- function(x, na.rm = FALSE) (ifelse(x = 1, 1, 0))
+l2_ind <- function(x, na.rm = FALSE) (ifelse(x = 2, 1, 0))
+l3_ind <- function(x, na.rm = FALSE) (ifelse(x = 3, 1, 0))
+
+min1_ind <- function(x, na.rm = FALSE) (min(d[x == 1]))
+min2_ind <- function(x, na.rm = FALSE) (min(d[x == 2]))
+min3_ind <- function(x, na.rm = FALSE) (min(d[x == 3]))
+
+fade1 <- function(x, na.rm = FALSE) (1 / (1 + exp(d - min1_ind - 8)))
+fade2 <- function(x, na.rm = FALSE) (1 / (1 + exp(d - min2_ind - 8)))
+fade3 <- function(x, na.rm = FALSE) (1 / (1 + exp(d - min3_ind - 8)))
+
+z1  <- function(x, na.rm = FALSE) (fade1 * l1_ind)
+z2  <- function(x, na.rm = FALSE) (fade1 * l1_ind)
+z3  <- function(x, na.rm = FALSE) (fade1 * l1_ind)
+
+
 st_pop <- acs_2019_1yr_pums %>%
   group_by(ST) %>%
   summarise(pop = sum(PWGTP))
@@ -21,8 +39,7 @@ analytic2_1 <- st_pop %>%
   inner_join(confdaily, by = 'state') %>%
   inner_join(restrictions, by = c('state','date')) %>%
   group_by(state) %>%
-  mutate(d = row_number(),
-         cds = newcases/pop) %>%
+  mutate(d = row_number()) %>%
   ungroup() %>%
   mutate(sinfd = 0.5 * (sin((d/20.69) - 1.82) + 1),
          sfd = ifelse(d <= 366,
@@ -31,20 +48,13 @@ analytic2_1 <- st_pop %>%
          x1d = ifelse(d >= 150,
                       sfd * sinfd,
                       (d/150) * (0.5 * (sin((150/20.69) - 1.82) + 1)) * (abs(150 - 183)/366) + 0.5),
-         I1_1 = ifelse(C1 = 1, 1, 0),
-         I1_2 = ifelse(C1 = 2, 1, 0),
-         I1_3 = ifelse(C1 = 3, 1, 0)
-         ) %>%
-  summarise(D1_1 = min(d[I1_1 == 1]),
-            D1_2 = min(d[I1_2 == 1]),
-            D1_3 = min(d[I1_3 == 1])
-            ) %>%
-  mutate(fade1_1 = 1 / (1 + exp(d - D1_1 - 8)),
-         fade1_2 = 1 / (1 + exp(d - D1_2 - 8)),
-         fade1_3 = 1 / (1 + exp(d - D1_3 - 8)),
-         z1_1 = fade1_1 * I1_1,
-         z1_2 = fade1_2 * I1_2,
-         z1_3 = fade1_3 * I1_3)
+         cds = newcases/pop,
+         across('C',list(i1 = l1_ind, i2 = l2_ind, i3 = l3_ind))) %>%
+  group_by(state)
+  summarise(across(C1:C8, list(min1 = min1_ind, min2 = min2_ind, min3 = min3_ind))) %>%
+  ungroup() %>%
+  mutate(across('C', list(f1 = fade1, f2 = fade2, f3 = fade3)),
+         across('C', list(z1 = z1, z2 = z2, z3 = z3)))
 
 # Step 2: Define Survey Design
 
