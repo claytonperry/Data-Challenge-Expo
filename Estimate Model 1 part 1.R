@@ -117,37 +117,31 @@ model1monthly %>%
 #Model Estimates
 #overall predicted covid unemp
 model1total <- expected_v_df %>%
-  summarise(SS1_total = sum(predict*PWEIGHT))
-
-write_sheet(model1total, ss = '1wZFsYoKQyGQJPBU0dqJq0gI8CHadbWUfaUFVzHV6It0', sheet = 'SS1.0 Part 1 Estimates')
+  summarise(SS1_total = sum(predict*PWEIGHT)) %>%
+  write_sheet(model1total, ss = '1wZFsYoKQyGQJPBU0dqJq0gI8CHadbWUfaUFVzHV6It0', sheet = 'SS1.0 Part 1 Estimates')
 
 HHPtotal <- analytic %>%
-  summarise(HHP_total = sum(Imsi*PWEIGHT))
-
-range_write(HHPtotal, ss = '1wZFsYoKQyGQJPBU0dqJq0gI8CHadbWUfaUFVzHV6It0', sheet = 'SS1.0 Part 1 Estimates', range='B')
+  summarise(HHP_total = sum(Imsi*PWEIGHT)) %>%
+  range_write(HHPtotal, ss = '1wZFsYoKQyGQJPBU0dqJq0gI8CHadbWUfaUFVzHV6It0', sheet = 'SS1.0 Part 1 Estimates', range='B')
 
 #state predictions
 model1state <- expected_v_df %>%
   group_by(state) %>%
-  summarise(SS1_state = sum(predict*PWEIGHT))
-
-range_write(model1state, ss = '1wZFsYoKQyGQJPBU0dqJq0gI8CHadbWUfaUFVzHV6It0', sheet = 'SS1.0 Part 1 Estimates', range = 'D1')
+  summarise(SS1_state = sum(predict*PWEIGHT)) %>%
+  range_write(model1state, ss = '1wZFsYoKQyGQJPBU0dqJq0gI8CHadbWUfaUFVzHV6It0', sheet = 'SS1.0 Part 1 Estimates', range = 'D1')
 
 HHP_state <- analytic %>%
   group_by(state) %>%
-  summarise(HHP_state = sum(Imsi*PWEIGHT))
-
-range_write(HHP_state, ss = '1wZFsYoKQyGQJPBU0dqJq0gI8CHadbWUfaUFVzHV6It0', sheet = 'SS1.0 Part 1 Estimates', range = 'F1')
+  summarise(HHP_state = sum(Imsi*PWEIGHT)) %>%
+  range_write(HHP_state, ss = '1wZFsYoKQyGQJPBU0dqJq0gI8CHadbWUfaUFVzHV6It0', sheet = 'SS1.0 Part 1 Estimates', range = 'F1')
 
 #state-month predictions
 model1monthly <- expected_v_df %>%
   group_by(state,yearmonth) %>%
-  summarise(SS1_statemonth = sum(predict*PWEIGHT))
-
-range_write(model1monthly, ss = '1wZFsYoKQyGQJPBU0dqJq0gI8CHadbWUfaUFVzHV6It0', sheet = 'SS1.0 Part 1 Estimates', range = 'I1')
+  summarise(SS1_statemonth = sum(predict*PWEIGHT)) %>%
+  range_write(model1monthly, ss = '1wZFsYoKQyGQJPBU0dqJq0gI8CHadbWUfaUFVzHV6It0', sheet = 'SS1.0 Part 1 Estimates', range = 'I1')
 
 HHP_statemonth <- analytic %>%
   group_by(state,yearmonth) %>%
-  summarise(HHP_statemonth = sum(Imsi*PWEIGHT))
-
-range_write(HHP_statemonth, ss = '1wZFsYoKQyGQJPBU0dqJq0gI8CHadbWUfaUFVzHV6It0', sheet = 'SS1.0 Part 1 Estimates', range = 'L1')
+  summarise(HHP_statemonth = sum(Imsi*PWEIGHT)) %>%
+  range_write(HHP_statemonth, ss = '1wZFsYoKQyGQJPBU0dqJq0gI8CHadbWUfaUFVzHV6It0', sheet = 'SS1.0 Part 1 Estimates', range = 'L1')
