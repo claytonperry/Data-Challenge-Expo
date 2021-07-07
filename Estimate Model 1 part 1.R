@@ -73,11 +73,11 @@ analytic <- schedule %>%
                       Imsi = as.integer(ifelse(RSNNOWRK %in% c(8,9,10,11), 1, 0)),
                       sex = EGENDER - 1,
                       weight = PWEIGHT/sum(PWEIGHT)) %>%
-               select(Imsi,sex,week,fips, PWEIGHT, weight),
+               select(Imsi,sex,week,fips, PWEIGHT, weight, raceth, agebin, EEDUC),
              by = 'week') %>%
   full_join(states, by = 'fips') %>%
   inner_join(confmonthly, by = c('yearmonth', 'state')) %>%
-  select(Imsi, sex, state, yearmonth, newcases, PWEIGHT, weight) %>%
+  select(Imsi, sex, state, yearmonth, newcases, PWEIGHT, weight, EEDUC, raceth, agebin) %>%
   mutate(id = row_number())
 
 glm_list <- list()
@@ -87,7 +87,7 @@ final_list <- list()
 d <- svydesign(ids = ~1, weights = ~PWEIGHT, data = analytic)
 
 for (i in unique(analytic$state)) {
-  glm_list[[i]] <- svyglm(Imsi ~ newcases + sex, subset = state == i, design = d, family = binomial)
+  glm_list[[i]] <- svyglm(Imsi ~ newcases + sex + agebin + raceth + EEDUC, subset = state == i, design = d, family = binomial)
   predictions_list[[i]] <- predict(glm_list[[i]], type = 'response')
   attributes(predictions_list[[i]]) <- NULL
   final_list[[i]] <- cbind(analytic %>% filter(state == i),data.frame(predict = predictions_list[[i]]))
@@ -101,13 +101,13 @@ expected_v_df %>%
 results_list <- list()
 
 for (i in unique(analytic$state)) {
-  a <- tidy(svyglm(Imsi ~ newcases + sex, subset = state == i, design = d, family = binomial))
+  a <- tidy(svyglm(Imsi ~ newcases + sex + agebin + raceth + EEDUC, subset = state == i, design = d, family = binomial))
   results_list[[i]] <- cbind(i,a)
 }
 
 results <- do.call('rbind',results_list)
 
-write_sheet(results, ss = '1wZFsYoKQyGQJPBU0dqJq0gI8CHadbWUfaUFVzHV6It0', sheet = 'Model 1 (SS)')
+write_sheet(results, ss = '1wZFsYoKQyGQJPBU0dqJq0gI8CHadbWUfaUFVzHV6It0', sheet = 'Model 1 (SS) with demos')
 
 model1monthly %>%
   group_by(state,yearmonth) %>%
@@ -118,30 +118,30 @@ model1monthly %>%
 #overall predicted covid unemp
 model1total <- expected_v_df %>%
   summarise(SS1_total = sum(predict*PWEIGHT)) %>%
-  write_sheet(model1total, ss = '1wZFsYoKQyGQJPBU0dqJq0gI8CHadbWUfaUFVzHV6It0', sheet = 'SS1.0 Part 1 Estimates')
+  write_sheet(model1total, ss = '1wZFsYoKQyGQJPBU0dqJq0gI8CHadbWUfaUFVzHV6It0', sheet = 'SS1.0 Part 1 Est w demos')
 
 HHPtotal <- analytic %>%
   summarise(HHP_total = sum(Imsi*PWEIGHT)) %>%
-  range_write(HHPtotal, ss = '1wZFsYoKQyGQJPBU0dqJq0gI8CHadbWUfaUFVzHV6It0', sheet = 'SS1.0 Part 1 Estimates', range='B')
+  range_write(HHPtotal, ss = '1wZFsYoKQyGQJPBU0dqJq0gI8CHadbWUfaUFVzHV6It0', sheet = 'SS1.0 Part 1 Est w demos', range='B')
 
 #state predictions
 model1state <- expected_v_df %>%
   group_by(state) %>%
   summarise(SS1_state = sum(predict*PWEIGHT)) %>%
-  range_write(model1state, ss = '1wZFsYoKQyGQJPBU0dqJq0gI8CHadbWUfaUFVzHV6It0', sheet = 'SS1.0 Part 1 Estimates', range = 'D1')
+  range_write(model1state, ss = '1wZFsYoKQyGQJPBU0dqJq0gI8CHadbWUfaUFVzHV6It0', sheet = 'SS1.0 Part 1 Est w demos', range = 'D1')
 
 HHP_state <- analytic %>%
   group_by(state) %>%
   summarise(HHP_state = sum(Imsi*PWEIGHT)) %>%
-  range_write(HHP_state, ss = '1wZFsYoKQyGQJPBU0dqJq0gI8CHadbWUfaUFVzHV6It0', sheet = 'SS1.0 Part 1 Estimates', range = 'F1')
+  range_write(HHP_state, ss = '1wZFsYoKQyGQJPBU0dqJq0gI8CHadbWUfaUFVzHV6It0', sheet = 'SS1.0 Part 1 Est w demos', range = 'F1')
 
 #state-month predictions
 model1monthly <- expected_v_df %>%
   group_by(state,yearmonth) %>%
   summarise(SS1_statemonth = sum(predict*PWEIGHT)) %>%
-  range_write(model1monthly, ss = '1wZFsYoKQyGQJPBU0dqJq0gI8CHadbWUfaUFVzHV6It0', sheet = 'SS1.0 Part 1 Estimates', range = 'I1')
+  range_write(model1monthly, ss = '1wZFsYoKQyGQJPBU0dqJq0gI8CHadbWUfaUFVzHV6It0', sheet = 'SS1.0 Part 1 Est w demos', range = 'I1')
 
 HHP_statemonth <- analytic %>%
   group_by(state,yearmonth) %>%
   summarise(HHP_statemonth = sum(Imsi*PWEIGHT)) %>%
-  range_write(HHP_statemonth, ss = '1wZFsYoKQyGQJPBU0dqJq0gI8CHadbWUfaUFVzHV6It0', sheet = 'SS1.0 Part 1 Estimates', range = 'L1')
+  range_write(HHP_statemonth, ss = '1wZFsYoKQyGQJPBU0dqJq0gI8CHadbWUfaUFVzHV6It0', sheet = 'SS1.0 Part 1 Est w demos', range = 'L1')
