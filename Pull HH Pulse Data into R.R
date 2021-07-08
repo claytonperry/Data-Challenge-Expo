@@ -34,10 +34,24 @@ for (i in numweeks) {
     as_id(id), path = temp, overwrite = TRUE)
   j <- read.csv(temp)
   puf_list[[i]] <- j %>%
-    select(WEEK,RHISPANIC,RRACE,EEDUC,ANYWORK,RSNNOWRK,EST_ST,PWEIGHT,EGENDER)
+    select(WEEK,RHISPANIC,RRACE,EEDUC,ANYWORK,RSNNOWRK,EST_ST,PWEIGHT,EGENDER,TBIRTH_YEAR)
 }
 
-puf_df <- do.call('rbind',puf_list)
+puf_df <- do.call('rbind',puf_list) %>%
+  mutate(agecont = 2021 - TBIRTH_YEAR,
+         agebin = ifelse(agecont < 37 , 1,
+                         ifelse(agecont < 48 , 2,
+                                ifelse(agecont < 58 , 3,
+                                       ifelse(agecont < 68 , 4 , 5)))),
+         raceth = ifelse(RHISPANIC== 2 , 1,
+                         ifelse(RRACE== 1, 2,
+                                ifelse(RRACE== 2, 3,
+                                       ifelse(RRACE== 3, 4,
+                                              ifelse(RRACE== 4, 5,9))))))
+#QC creation of agebin and raceth
+source("http://pcwww.liv.ac.uk/~william/R/crosstab.r")
+crosstab(puf_df, row.vars = "agecont", col.vars = "agebin", type = "f")
+crosstab(puf_df, row.vars = c("RHISPANIC","RRACE"), col.vars = "raceth", type = "f")
 
 #create repweight df
 
