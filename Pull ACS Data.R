@@ -1,10 +1,5 @@
 #Set up and pull ACS data
 
-states <- unique(tidycensus::fips_codes[,1:3])[0:51,] %>%
-  rename(stusps = state,
-         fips = state_code,
-         state = state_name)
-
 #install.packages('tidyverse')
 #install.packages('tidycensus')
 
@@ -17,6 +12,11 @@ Sys.setenv(CENSUS_API_KEY = '5dc30770cc0133357b32b987a7bdd7f51e1b4a80')
 
 # ACS 2019 PUMS Data Dictionary: https://www2.census.gov/programs-surveys/acs/tech_docs/pums/data_dict/PUMS_Data_Dictionary_2019.pdf
 
+states <- unique(tidycensus::fips_codes[,1:3])[0:51,] %>%
+  rename(stusps = state,
+         fips = state_code,
+         state = state_name)
+
 #example loading PUMS
 acs_list <- list()
 
@@ -25,6 +25,8 @@ acs_list[[i]] <- get_pums(variables = c('SEX',"AGEP",'ESR','COW', 'RAC1P','NWAV'
                             state = i, survey = "acs1", year = 2019, recode ="TRUE", rep_weights = 'person')
 }
 
-acs_19_1yr_pums <- do.call(rbind,acs_list) %>%
+acs_19_1yr_pums <- do.call(rbind,acs_list)
+
+acs_19_1yr_pums <- acs_19_1yr_pums %>%
   rename(fips = ST) %>%
   inner_join(states, by = 'fips')
