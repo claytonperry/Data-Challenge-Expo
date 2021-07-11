@@ -1,5 +1,6 @@
 
 library(tidyverse)
+library(lubridate)
 
 raw <- read.csv('https://raw.githubusercontent.com/OxCGRT/USA-covid-policy/master/data/OxCGRT_US_latest.csv')
 
@@ -21,3 +22,19 @@ summary.factor(restrictions$state)
 
 ##different set
 raw2 <- read.csv('https://raw.githubusercontent.com/COVID19StatePolicy/SocialDistancing/master/data/USstatesCov19distancingpolicy.csv')
+
+
+## Create state-month summarized dataframe
+
+# Create functions to iterate over C variables
+
+cnt_0 <- function(x, na.rm = FALSE) {sum(x == 0)}
+cnt_1 <- function(x, na.rm = FALSE) {sum(x == 1)}
+cnt_2 <- function(x, na.rm = FALSE) {sum(x == 2)}
+cnt_3 <- function(x, na.rm = FALSE) {sum(x == 3)}
+
+restrictions_mnth <- restrictions %>% 
+  mutate(yearmonth = paste0(year(date), ' ',month(date, label = T, abbr = F))) %>%
+  group_by(state, yearmonth) %>%
+  summarise(across(C1:C8, list(c0 = cnt_0, c1 = cnt_1, c2 = cnt_2, c3 = cnt_3)))
+            
