@@ -17,7 +17,7 @@ fips <- tidycensus::fips_codes %>%
          fips = state_code,
          state = state_name)
 
-cps_files <- drive_find(pattern = 'cps_00001')
+cps_files <- drive_find(pattern = 'cps_00003')
 
 1
 
