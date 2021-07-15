@@ -32,9 +32,10 @@ cnt_0 <- function(x, na.rm = FALSE) {sum(x == 0)}
 cnt_1 <- function(x, na.rm = FALSE) {sum(x == 1)}
 cnt_2 <- function(x, na.rm = FALSE) {sum(x == 2)}
 cnt_3 <- function(x, na.rm = FALSE) {sum(x == 3)}
+fctsum <- function(x, na.rm = FALSE) {sum(x^2)}
 
 restrictions_mnth <- restrictions %>% 
   mutate(yearmonth = paste0(year(date), ' ',month(date, label = T, abbr = F))) %>%
   group_by(state, yearmonth) %>%
-  summarise(across(C1:C8, list(c0 = cnt_0, c1 = cnt_1, c2 = cnt_2, c3 = cnt_3)))
+  summarise(across(C1:C8, list(c0 = cnt_0, c1 = cnt_1, c2 = cnt_2, c3 = cnt_3, sum1 = sum, sum2 = fctsum)))
             
