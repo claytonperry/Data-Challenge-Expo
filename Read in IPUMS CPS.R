@@ -31,23 +31,7 @@ dl <- drive_download(
   as_id(cps_files[[which(cps_files$name == 'cps_00003.xml'),2]]), path = temp2, overwrite = T
 )
 
-CPS_raw <- read_ipums_micro(temp2, data_file = temp1) 
-
-CPS <- CPS_raw %>%
-  mutate(yearmonth = paste(YEAR, month.name[MONTH],sep = " "),
-         fips = str_pad(STATEFIP,2,side = 'left',pad = '0'),
-         agebin = ifelse(AGE < 37 , 1,
-                         ifelse(AGE < 48 , 2,
-                                ifelse(AGE < 58 , 3,
-                                       ifelse(AGE < 68 , 4 , 5)))),
-         raceth = ifelse(99<HISPAN<613 , 1,
-                         ifelse(RACE== 100, 2,
-                                ifelse(RACE== 200, 3,
-                                       ifelse(RACE== 651, 4,
-                                              ifelse(RACE==999 & HISPAN %in% c('901','902'), 9,5)))))) %>%
-  inner_join(fips, by = 'fips')
-  
-CPS <- CPS_raw %>%
+CPS <- read_ipums_micro(temp2, data_file = temp1)  %>%
   mutate(yearmonth = paste(YEAR, month.name[MONTH],sep = " "),
          fips = str_pad(STATEFIP,2,side = 'left',pad = '0'),
          agebin = case_when(AGE < 37 ~ 1,
