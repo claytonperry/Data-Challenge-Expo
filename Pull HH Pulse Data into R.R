@@ -39,15 +39,18 @@ for (i in numweeks) {
 
 puf_df <- do.call('rbind',puf_list) %>%
   mutate(agecont = 2021 - TBIRTH_YEAR,
-         agebin = ifelse(agecont < 37 , 1,
-                         ifelse(agecont < 48 , 2,
-                                ifelse(agecont < 58 , 3,
-                                       ifelse(agecont < 68 , 4 , 5)))),
-         raceth = ifelse(RHISPANIC== 2 , 1,
-                         ifelse(RRACE== 1, 2,
-                                ifelse(RRACE== 2, 3,
-                                       ifelse(RRACE== 3, 4,
-                                              ifelse(RRACE== 4, 5,9))))))
+         agebin = case_when(agecont < 37 ~ 1,
+                            agecont < 48 ~ 2,
+                            agecont < 58 ~ 3,
+                            agecont < 68 ~ 4,
+                            TRUE ~ 5),
+         raceth = case_when(RHISPANIC == 1 ~ 1,
+                            RRACE == 1 ~ 2,
+                            RRACE == 2 ~ 3,
+                            RRACE == 3 ~ 4,
+                            RRACE == 4 ~ 5,
+                            TRUE ~ 9))
+
 #QC creation of agebin and raceth
 source("http://pcwww.liv.ac.uk/~william/R/crosstab.r")
 crosstab(puf_df, row.vars = "agecont", col.vars = "agebin", type = "f")
