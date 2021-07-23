@@ -21,7 +21,7 @@ analytic2 <- schedule %>% #start with schedule
   inner_join(CPS, by = c('yearmonth', 'state')) %>% #join in CPS data
   filter(LABFORCE %in% c(1,2)) %>% #filter for individuals with relevant LABFORCE values
   mutate(CLF = ifelse(LABFORCE == 1, 0, 1)) %>% #create dependent variable
-  select(CLF, SEX, WTFINL, newcases, yearmonth, state) %>% #retain relevant variables
+  select(CLF, SEX, EEDUC, agebin, raceth, WTFINL, newcases, yearmonth, state) %>% #retain relevant variables
   remove_attributes(.,c('label','var_desc'))
   
 #create empty lists to hold state-wise GLMs, predictions, and final dataframes for comparing predictions to actuals
@@ -37,7 +37,7 @@ d_unweight <- svydesign(ids = ~1,  data = analytic2)
 #run state-wise loop to produce final dataframes
 
 for (i in unique(analytic2$state)) {
-  glm_list[[i]] <- svyglm(CLF ~ newcases + SEX, subset = state == i, design = d_unweight, family = binomial)
+  glm_list[[i]] <- svyglm(CLF ~ newcases + SEX + agebin + raceth + EEDUC, subset = state == i, design = d_unweight, family = binomial)
   predictions_list[[i]] <- predict(glm_list[[i]], type = 'response')
   attributes(predictions_list[[i]]) <- NULL
   final_list[[i]] <- cbind(analytic2 %>% filter(state == i),data.frame(predict = predictions_list[[i]]))
@@ -67,7 +67,7 @@ results_list <- ls()
 #create statewise dataframes of coefficient estimates and significance via loop
 
 for (i in unique(analytic2$state)) {
-  a <- tidy(svyglm(CLF ~ newcases + SEX, subset = state == i, design = d_unweight, family = binomial))
+  a <- tidy(svyglm(CLF ~ newcases + SEX + agebin + raceth + EEDUC, subset = state == i, design = d_unweight, family = binomial))
   results_list[[i]] <- cbind(i,a)
 }
 
@@ -95,7 +95,7 @@ d_weight <- svydesign(ids = ~1, weights = ~WTFINL, data = analytic2)
 #run state-wise loop to produce final dataframes
 
 for (i in unique(analytic2$state)) {
-  glm_list[[i]] <- svyglm(CLF ~ newcases + SEX, subset = state == i, design = d_weight, family = binomial)
+  glm_list[[i]] <- svyglm(CLF ~ newcases + SEX + agebin + raceth + EEDUC, subset = state == i, design = d_weight, family = binomial)
   predictions_list[[i]] <- predict(glm_list[[i]], type = 'response')
   attributes(predictions_list[[i]]) <- NULL
   final_list[[i]] <- cbind(analytic2 %>% filter(state == i),data.frame(predict = predictions_list[[i]]))
@@ -125,7 +125,7 @@ results_list <- ls()
 #create statewise dataframes of coefficient estimates and significance via loop
 
 for (i in unique(analytic2$state)) {
-  a <- tidy(svyglm(CLF ~ newcases + SEX, subset = state == i, design = d_weight, family = binomial))
+  a <- tidy(svyglm(CLF ~ newcases + SEX + agebin + raceth + EEDUC, subset = state == i, design = d_weight, family = binomial))
   results_list[[i]] <- cbind(i,a)
 }
 
