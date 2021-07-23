@@ -52,7 +52,7 @@ analytic2_0 <- st_pop %>%
          x1d = ifelse(d >= 150,
                       sfd * sinfd,
                       (d/150) * (0.5 * (sin((150/20.69) - 1.82) + 1)) * (abs(150 - 183)/366) + 0.5),
-         cds = newcases_d/pop,
+         pds = newcases_d/pop,
          across(C1:C8,list(i0 = l0_ind, i1 = l1_ind, i2 = l2_ind, i3 = l3_ind))) %>%
   group_by(state) %>%
   mutate(C1_min0 = min(d[which(C1==0)]),
@@ -153,7 +153,7 @@ analytic2_0 <- st_pop %>%
          C8_z1 = C8_fade1 * C8_i1,
          C8_z2 = C8_fade2 * C8_i2,
          C8_z3 = C8_fade3 * C8_i3) %>%
-  filter(cds > 0, complete.cases(.))
+  filter(pds > 0, complete.cases(.))
 
 # Step 3: Prepare for loop
 
@@ -164,7 +164,7 @@ final_list <- list()
 # Step 4: Run loop through states
 
 for (i in unique(analytic2_0$state)) {
-  glm_list[[i]] <- glm(cds ~ x1d + C1_z1 + C1_z2 + C1_z3 +
+  glm_list[[i]] <- glm(pds ~ x1d + C1_z1 + C1_z2 + C1_z3 +
                          C2_z1 + C2_z2 + C2_z3 + C3_z1 + C3_z2 + C3_z3 +
                          C4_z1 + C4_z2 + C4_z3 + C5_z1 + C5_z2 + C5_z3 +
                          C6_z1 + C6_z2 + C6_z3 + C1_z1 + C7_z2 + C7_z3 +
@@ -179,4 +179,11 @@ for (i in unique(analytic2_0$state)) {
 
 v_df <- do.call('rbind',final_list) %>%
   mutate(cds_hat = predict * pop)
-  
+
+summary(v_df$cds_hat)  
+
+m2_0_monthly <- v_df %>%
+  select(state,yearmonth,cds_hat) %>%
+  group_by(state,yearmonth) %>%
+  summarise(newcases_hat = sum(cds_hat))
+
