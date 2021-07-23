@@ -7,7 +7,6 @@
 
 # Step 1: Call relevant libraries
 library(tidyverse)
-library(survey)
 library(broom)
 library(googlesheets4)
 library(labelled)
@@ -164,16 +163,33 @@ final_list <- list()
 # Step 4: Run loop through states
 
 for (i in unique(analytic2_0$state)) {
-  glm_list[[i]] <- glm(pds ~ x1d + C1_z1 + C1_z2 + C1_z3 +
-                         C2_z1 + C2_z2 + C2_z3 + C3_z1 + C3_z2 + C3_z3 +
-                         C4_z1 + C4_z2 + C4_z3 + C5_z1 + C5_z2 + C5_z3 +
-                         C6_z1 + C6_z2 + C6_z3 + C1_z1 + C7_z2 + C7_z3 +
-                         C8_z1 + C8_z2 + C8_z3,
+  glm_list[[i]] <- glm(pds ~ x1d + C1_z0 + C1_z1 + C1_z2 + C1_z3 +
+                         C2_z0 + C2_z1 + C2_z2 + C2_z3 + C3_z0 + C3_z1 + C3_z2 + C3_z3 +
+                         C4_z0 + C4_z1 + C4_z2 + C4_z3 + C5_z0 + C5_z1 + C5_z2 + C5_z3 +
+                         C6_z0 + C6_z1 + C6_z2 + C6_z3 + C7_z0 + C7_z1 + C7_z2 + C7_z3 +
+                         C8_z0 + C8_z1 + C8_z2 + C8_z3,
                        subset = state == i, data = analytic2_0,  family = Gamma)
   predictions_list[[i]] <- predict(glm_list[[i]], type = 'response')
   attributes(predictions_list[[i]]) <- NULL
   final_list[[i]] <- cbind(analytic2_0 %>% filter(state == i),data.frame(predict = predictions_list[[i]]))
 }
+
+results_list <- list()
+
+for (i in unique(analytic2_0$state)) {
+  a <- tidy(glm(pds ~ x1d + C1_z0 + C1_z1 + C1_z2 + C1_z3 +
+                  C2_z0 + C2_z1 + C2_z2 + C2_z3 + C3_z0 + C3_z1 + C3_z2 + C3_z3 +
+                  C4_z0 + C4_z1 + C4_z2 + C4_z3 + C5_z0 + C5_z1 + C5_z2 + C5_z3 +
+                  C6_z0 + C6_z1 + C6_z2 + C6_z3 + C7_z0 + C7_z1 + C7_z2 + C7_z3 +
+                  C8_z0 + C8_z1 + C8_z2 + C8_z3, subset = state == i, data = analytic2_0, family = Gamma))
+  results_list[[i]] <- cbind(i,a)
+}
+
+results_v0 <- do.call('rbind',results_list) %>%
+  mutate(std.error = as.character(std.error))
+
+write_sheet(results_v0, ss = '1w89IU3xGa__wGtFBG-sHBmo7QSGs1NXF9rItS0m2fdo', sheet = 'Model 2.0')
+
 
 # Step 5: Bind final lists and create predicted daily proportion
 
@@ -187,3 +203,21 @@ m2_0_monthly <- v_df %>%
   group_by(state,yearmonth) %>%
   summarise(newcases_hat = sum(cds_hat))
 
+
+for (i in unique(analytic2_0$state)) {
+  i <- i
+glm(pds ~ x1d + C1_z0 + C1_z1 + C1_z2 + C1_z3 +
+      C2_z0 + C2_z1 + C2_z2 + C2_z3 + C3_z0 + C3_z1 + C3_z2 + C3_z3 +
+      C4_z0 + C4_z1 + C4_z2 + C4_z3 + C5_z0 + C5_z1 + C5_z2 + C5_z3 +
+      C6_z0 + C6_z1 + C6_z2 + C6_z3 + C7_z0 + C7_z1 + C7_z2 + C7_z3 +
+      C8_z0 + C8_z1 + C8_z2 + C8_z3,
+    subset = state == i, data = analytic2_0,  family = Gamma)
+}
+summary.factor(analytic2_0$state)
+
+glm(pds ~ x1d + C1_z0 + C1_z1 + C1_z2 + C1_z3 +
+      C2_z0 + C2_z1 + C2_z2 + C2_z3 + C3_z0 + C3_z1 + C3_z2 + C3_z3 +
+      C4_z0 + C4_z1 + C4_z2 + C4_z3 + C5_z0 + C5_z1 + C5_z2 + C5_z3 +
+      C6_z0 + C6_z1 + C6_z2 + C6_z3 + C7_z0 + C7_z1 + C7_z2 + C7_z3 +
+      C8_z0 + C8_z1 + C8_z2 + C8_z3,
+    subset = state == 'Connecticut', data = analytic2_0,  family = Gamma(link='log'))
