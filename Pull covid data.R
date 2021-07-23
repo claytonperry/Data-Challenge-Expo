@@ -27,7 +27,8 @@ confdaily <- read.csv('https://raw.githubusercontent.com/CSSEGISandData/COVID-19
   ungroup() %>%
   arrange(state,date) %>%
   group_by(state) %>%
-  mutate(newcases_d = cases_d - lag(cases_d,default = 0)) %>%
+  mutate(newcases_d = cases_d - lag(cases_d,default = 0),
+         newcases_d = ifelse(newcases_d < 0, NA_integer_,newcases_d)) %>%
   select(state, yearmonth, date, cases_d, newcases_d)
 
 deathdaily <- read.csv('https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_US.csv') %>%
