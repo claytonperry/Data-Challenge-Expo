@@ -152,7 +152,8 @@ analytic2_1 <- st_pop %>%
          C8_z0 = C8_fade0 * C8_i0,
          C8_z1 = C8_fade1 * C8_i1,
          C8_z2 = C8_fade2 * C8_i2,
-         C8_z3 = C8_fade3 * C8_i3)
+         C8_z3 = C8_fade3 * C8_i3) %>%
+  filter(cds > 0, complete.cases(.))
 
 ## COMPREHENSIVE FUNCTION VERSION
 
@@ -176,10 +177,6 @@ analytic2_1 <- st_pop %>%
     mutate(across(C1:C8,list(z1 = comprehensive1(.,'d'), z2 = comprehensive2(.,'d'), z3 = comprehensive3(.,'d')))) %>%
     ungroup()
   
-# Step 2: Define Survey Design
-
-d <- svydesign(ids = ~1,  data = analytic2_1)
-
 # Step 3: Prepare for loop
 
 glm_list <- list()
@@ -194,16 +191,11 @@ for (i in unique(analytic2_1$state)) {
                          C4_z1 + C4_z2 + C4_z3 + C5_z1 + C5_z2 + C5_z3 +
                          C6_z1 + C6_z2 + C6_z3 + C1_z1 + C7_z2 + C7_z3 +
                          C8_z1 + C8_z2 + C8_z3,
-                       subset = state == i, na.action = na.omit, data = analytic2_1,  family = Gamma)
+                       subset = state == i, data = analytic2_1,  family = Gamma)
   predictions_list[[i]] <- predict(glm_list[[i]], type = 'response')
   attributes(predictions_list[[i]]) <- NULL
   final_list[[i]] <- cbind(analytic2_1 %>% filter(state == i),data.frame(predict = predictions_list[[i]]))
 }
-
-test <- glm(cds ~ x1d + C1_z1 + C1_z2 + C1_z3 +
-           C2_z1 + C2_z2 + C2_z3 + C3_z1 + C3_z2 + C4_z3 + C5_z1 +
-           C6_z1 + C6_z2,  family = Gamma, data = analytic2_1,
-         subset = state == 'Alabama', na.action = ))
 
 # Step 5: Bind final lists and create predicted daily proportion
 
