@@ -39,7 +39,7 @@ st_pop <- acs_19_1yr_pums %>%
   group_by(state) %>%
   summarise(pop = sum(PWGTP))
 
-analytic2_1 <- st_pop %>%
+analytic2_0 <- st_pop %>%
   inner_join(confdaily, by = 'state') %>%
   inner_join(restrictions, by = c('state','date')) %>%
   group_by(state) %>%
@@ -155,28 +155,6 @@ analytic2_1 <- st_pop %>%
          C8_z3 = C8_fade3 * C8_i3) %>%
   filter(cds > 0, complete.cases(.))
 
-## COMPREHENSIVE FUNCTION VERSION
-
-  analytic2_0 <- st_pop %>%
-    inner_join(confdaily, by = 'state') %>%
-    inner_join(restrictions, by = c('state','date')) %>%
-    group_by(state) %>%
-    mutate(d = row_number()) %>%
-    ungroup() %>%
-    mutate(sinfd = 0.5 * (sin((d/20.69) - 1.82) + 1),
-           sfd = ifelse(d <= 366,
-                        (abs(d - 183)/366) + 0.5,
-                        (abs(d - 549)/365) + 0.5),
-           x1d = ifelse(d >= 150,
-                        sfd * sinfd,
-                        (d/150) * (0.5 * (sin((150/20.69) - 1.82) + 1)) * (abs(150 - 183)/366) + 0.5),
-           cds = newcases_d/pop)
-    
-  analytic2_1 <- analytic2_0 %>%
-    group_by(state) %>%
-    mutate(across(C1:C8,list(z1 = comprehensive1(.,'d'), z2 = comprehensive2(.,'d'), z3 = comprehensive3(.,'d')))) %>%
-    ungroup()
-  
 # Step 3: Prepare for loop
 
 glm_list <- list()
@@ -185,16 +163,16 @@ final_list <- list()
 
 # Step 4: Run loop through states
 
-for (i in unique(analytic2_1$state)) {
+for (i in unique(analytic2_0$state)) {
   glm_list[[i]] <- glm(cds ~ x1d + C1_z1 + C1_z2 + C1_z3 +
                          C2_z1 + C2_z2 + C2_z3 + C3_z1 + C3_z2 + C3_z3 +
                          C4_z1 + C4_z2 + C4_z3 + C5_z1 + C5_z2 + C5_z3 +
                          C6_z1 + C6_z2 + C6_z3 + C1_z1 + C7_z2 + C7_z3 +
                          C8_z1 + C8_z2 + C8_z3,
-                       subset = state == i, data = analytic2_1,  family = Gamma)
+                       subset = state == i, data = analytic2_0,  family = Gamma)
   predictions_list[[i]] <- predict(glm_list[[i]], type = 'response')
   attributes(predictions_list[[i]]) <- NULL
-  final_list[[i]] <- cbind(analytic2_1 %>% filter(state == i),data.frame(predict = predictions_list[[i]]))
+  final_list[[i]] <- cbind(analytic2_0 %>% filter(state == i),data.frame(predict = predictions_list[[i]]))
 }
 
 # Step 5: Bind final lists and create predicted daily proportion
