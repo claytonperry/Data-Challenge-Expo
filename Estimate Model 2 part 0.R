@@ -175,21 +175,27 @@ for (i in unique(analytic2_0$state)) {
 }
 
 results_list <- list()
+aic_list <- list()
 
 for (i in unique(analytic2_0$state)) {
-  a <- tidy(glm(pds ~ x1d + C1_z1 + C1_z2 + C1_z3 +
+  glm <- glm(pds ~ x1d + C1_z1 + C1_z2 + C1_z3 +
                   C2_z1 + C2_z2 + C2_z3 + C3_z1 + C3_z2 + C3_z3 +
                   C4_z1 + C4_z2 + C4_z3 + C5_z1 + C5_z2 + C5_z3 +
                   C6_z1 + C6_z2 + C6_z3 + C7_z1 + C7_z2 + C7_z3 +
-                  C8_z1 + C8_z2 + C8_z3, subset = state == i, data = analytic2_0, family = Gamma))
+                  C8_z1 + C8_z2 + C8_z3, subset = state == i, data = analytic2_0, family = Gamma)
+  a <- tidy(glm)
+  aic <- AIC(glm)
   results_list[[i]] <- cbind(i,a)
+  aic_list[[i]] <- cbind(i,aic)
 }
 
 results_v0 <- do.call('rbind',results_list) %>%
   mutate(std.error = as.character(std.error))
 
-write_sheet(results_v0, ss = '1w89IU3xGa__wGtFBG-sHBmo7QSGs1NXF9rItS0m2fdo', sheet = 'Model 2.0')
+aic_v0 <- data.frame(do.call('rbind',aic_list))
 
+range_write(results_v0, ss = '1w89IU3xGa__wGtFBG-sHBmo7QSGs1NXF9rItS0m2fdo', range = 'Model 2.0!A:F')
+range_write(aic_v0, ss = '1w89IU3xGa__wGtFBG-sHBmo7QSGs1NXF9rItS0m2fdo', range = 'Model 2.0!H:I')
 
 # Step 5: Bind final lists and create predicted daily proportion
 
@@ -202,22 +208,3 @@ m2_0_monthly <- v_df %>%
   select(state,yearmonth,cds_hat) %>%
   group_by(state,yearmonth) %>%
   summarise(newcases_hat = sum(cds_hat))
-
-
-for (i in unique(analytic2_0$state)) {
-  i <- i
-glm(pds ~ x1d + C1_z0 + C1_z1 + C1_z2 + C1_z3 +
-      C2_z0 + C2_z1 + C2_z2 + C2_z3 + C3_z0 + C3_z1 + C3_z2 + C3_z3 +
-      C4_z0 + C4_z1 + C4_z2 + C4_z3 + C5_z0 + C5_z1 + C5_z2 + C5_z3 +
-      C6_z0 + C6_z1 + C6_z2 + C6_z3 + C7_z0 + C7_z1 + C7_z2 + C7_z3 +
-      C8_z0 + C8_z1 + C8_z2 + C8_z3,
-    subset = state == i, data = analytic2_0,  family = Gamma)
-}
-summary.factor(analytic2_0$state)
-
-glm(pds ~ x1d + C1_z0 + C1_z1 + C1_z2 + C1_z3 +
-      C2_z0 + C2_z1 + C2_z2 + C2_z3 + C3_z0 + C3_z1 + C3_z2 + C3_z3 +
-      C4_z0 + C4_z1 + C4_z2 + C4_z3 + C5_z0 + C5_z1 + C5_z2 + C5_z3 +
-      C6_z0 + C6_z1 + C6_z2 + C6_z3 + C7_z0 + C7_z1 + C7_z2 + C7_z3 +
-      C8_z0 + C8_z1 + C8_z2 + C8_z3,
-    subset = state == 'Connecticut', data = analytic2_0,  family = Gamma(link='log'))
