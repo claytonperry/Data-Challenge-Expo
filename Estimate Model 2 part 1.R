@@ -1,4 +1,4 @@
-
+library(survey)
 
 analytic2_1 <- schedule %>%
   inner_join(puf_df %>%
@@ -28,12 +28,12 @@ for (i in unique(analytic2_1$state)) {
   glm_list[[i]] <- svyglm(Imsi ~ newcases_hat + sex + agebin + raceth + EEDUC +
                           C1_c0 + C1_c1 + C1_c2 + C1_c3 +
                           C2_c0 + C2_c1 + C2_c2 + C2_c3 +
-                          C3_c0 + C3_c1 + C3_c2 + C3_c3 +
-                          C4_c0 + C4_c1 + C4_c2 + C4_c3 +
-                          C5_c0 + C5_c1 + C5_c2 + C5_c3 +
+                          C3_c0 + C3_c1 + C3_c2 + 
+                          C4_c0 + C4_c1 + C4_c2 + C4_c3 + C4_c4
+                          C5_c0 + C5_c1 + C5_c2 + 
                           C6_c0 + C6_c1 + C6_c2 + C6_c3 +
-                          C7_c0 + C7_c1 + C7_c2 + C7_c3 +
-                          C8_c0 + C8_c1 + C8_c2 + C8_c3, subset = state == i, design = d, family = binomial)
+                          C7_c0 + C7_c1 + C7_c2 + 
+                          C8_c0 + C8_c1 + C8_c2 + C8_c3 + C8_c4, subset = state == i, design = d, family = binomial)
   predictions_list[[i]] <- predict(glm_list[[i]], type = 'response')
   attributes(predictions_list[[i]]) <- NULL
   final_list[[i]] <- cbind(analytic2_1 %>% filter(state == i),data.frame(predict = predictions_list[[i]]))
@@ -44,21 +44,26 @@ m2_1_expected_v_df_v1 <- do.call('rbind',final_list)
 results_list <- list()
 
 for (i in unique(analytic2_1$state)) {
-  a <- tidy(svyglm(Imsi ~ newcases_hat + sex + agebin + raceth + EEDUC +
-                      C1_c0 + C1_c1 + C1_c2 + C1_c3 +
-                      C2_c0 + C2_c1 + C2_c2 + C2_c3 +
-                      C3_c0 + C3_c1 + C3_c2 + C3_c3 +
-                      C4_c0 + C4_c1 + C4_c2 + C4_c3 +
-                      C5_c0 + C5_c1 + C5_c2 + C5_c3 +
-                      C6_c0 + C6_c1 + C6_c2 + C6_c3 +
-                      C7_c0 + C7_c1 + C7_c2 + C7_c3 +
-                      C8_c0 + C8_c1 + C8_c2 + C8_c3, subset = state == i, design = d, family = binomial))
+  glm <- tidy(svyglm(Imsi ~ newcases_hat + sex + agebin + raceth + EEDUC +
+                     C1_c0 + C1_c1 + C1_c2 + C1_c3 +
+                     C2_c0 + C2_c1 + C2_c2 + C2_c3 +
+                     C3_c0 + C3_c1 + C3_c2 + 
+                     C4_c0 + C4_c1 + C4_c2 + C4_c3 + C4_c4
+                   C5_c0 + C5_c1 + C5_c2 + 
+                     C6_c0 + C6_c1 + C6_c2 + C6_c3 +
+                     C7_c0 + C7_c1 + C7_c2 + 
+                     C8_c0 + C8_c1 + C8_c2 + C8_c3 + C8_c4, subset = state == i, design = d, family = binomial))
+  a <- tidy(glm)
+  aic <- AIC(glm)
   results_list[[i]] <- cbind(i,a)
+  aic_list[[i]] <- cbind(i,aic)
 }
 
 results_v1 <- do.call('rbind',results_list)
+aic_v1 <- data.frame(do.call('rbind',aic_list))
 
-write_sheet(results_v1, ss = '1w89IU3xGa__wGtFBG-sHBmo7QSGs1NXF9rItS0m2fdo', sheet = 'Model 2.1 v1')
+range_write(results_v1, ss = '1w89IU3xGa__wGtFBG-sHBmo7QSGs1NXF9rItS0m2fdo', range = 'Model 2.1 v1!A:F')
+range_write(aic_v1, ss = '1w89IU3xGa__wGtFBG-sHBmo7QSGs1NXF9rItS0m2fdo', range = 'Model 2.1 v1!H:I')
 
 ## Run using sum version 1
 
