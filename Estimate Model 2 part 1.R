@@ -29,7 +29,7 @@ for (i in unique(analytic2_1$state)) {
                           C1_c0 + C1_c1 + C1_c2 + C1_c3 +
                           C2_c0 + C2_c1 + C2_c2 + C2_c3 +
                           C3_c0 + C3_c1 + C3_c2 + 
-                          C4_c0 + C4_c1 + C4_c2 + C4_c3 + C4_c4
+                          C4_c0 + C4_c1 + C4_c2 + C4_c3 + C4_c4 +
                           C5_c0 + C5_c1 + C5_c2 + 
                           C6_c0 + C6_c1 + C6_c2 + C6_c3 +
                           C7_c0 + C7_c1 + C7_c2 + 
@@ -48,8 +48,8 @@ for (i in unique(analytic2_1$state)) {
                      C1_c0 + C1_c1 + C1_c2 + C1_c3 +
                      C2_c0 + C2_c1 + C2_c2 + C2_c3 +
                      C3_c0 + C3_c1 + C3_c2 + 
-                     C4_c0 + C4_c1 + C4_c2 + C4_c3 + C4_c4
-                   C5_c0 + C5_c1 + C5_c2 + 
+                     C4_c0 + C4_c1 + C4_c2 + C4_c3 + C4_c4 +
+                     C5_c0 + C5_c1 + C5_c2 + 
                      C6_c0 + C6_c1 + C6_c2 + C6_c3 +
                      C7_c0 + C7_c1 + C7_c2 + 
                      C8_c0 + C8_c1 + C8_c2 + C8_c3 + C8_c4, subset = state == i, design = d, family = binomial))
