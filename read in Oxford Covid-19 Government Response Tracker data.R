@@ -16,6 +16,7 @@ restrictions <- read.csv('https://raw.githubusercontent.com/OxCGRT/USA-covid-pol
          C6 = C6_Stay.at.home.requirements,
          C7 = C7_Restrictions.on.internal.movement,
          C8 = C8_International.travel.controls) %>%
+  mutate(across(C1:C8, function(x) ifelse(is.na(x),9,x))) %>%
   select(state,date,C1,C2,C3,C4,C5,C6,C7,C8)
 
 summary.factor(restrictions$state)
@@ -32,13 +33,14 @@ cnt_0 <- function(x, na.rm = TRUE) {sum(x == 0)}
 cnt_1 <- function(x, na.rm = TRUE) {sum(x == 1)}
 cnt_2 <- function(x, na.rm = TRUE) {sum(x == 2)}
 cnt_3 <- function(x, na.rm = TRUE) {sum(x == 3)}
-sum1 <- function(x, na.rm = TRUE) {sum(x)}
-fctsum <- function(x, na.rm = TRUE) {sum(x^2)}
+cnt_4 <- function(x, na.rm = TRUE) {sum(x == 4)}
+sum1 <- function(x, na.rm = TRUE) {sum(ifelse(x < 9, x, 0))}
+fctsum <- function(x, na.rm = TRUE) {sum(ifelse(x < 9, x^2, 0))}
 
 restrictions_mnth <- restrictions %>% 
   mutate(yearmonth = paste0(year(date), ' ',month(date, label = T, abbr = F))) %>%
   group_by(state, yearmonth) %>%
-  summarise(across(C1:C8, list(c0 = cnt_0, c1 = cnt_1, c2 = cnt_2, c3 = cnt_3, sum1 = sum1, sum2 = fctsum), na.rm = TRUE), na.rm = TRUE)
+  summarise(across(C1:C8, list(c0 = cnt_0, c1 = cnt_1, c2 = cnt_2, c3 = cnt_3, c4 = cnt_4, sum1 = sum1, sum2 = fctsum), na.rm = TRUE))
 
 summary(restrictions_mnth)
 summary(restrictions$C8[which(restrictions$state == 'Alabama')])
