@@ -172,6 +172,8 @@ for (i in unique(analytic2_0$state)) {
   final_list[[i]] <- cbind(analytic2_0 %>% filter(state == i),data.frame(predict = predictions_list[[i]]))
 }
 
+m2_0_expected_v_df <- do.call('rbind',final_list)
+
 results_list <- list()
 aic_list <- list()
 
@@ -191,9 +193,15 @@ results_v0 <- do.call('rbind',results_list) %>%
   mutate(std.error = as.character(std.error))
 
 aic_v0 <- data.frame(do.call('rbind',aic_list))
+m2_0_expecteds_compare <- m2_0_expected_v_df %>%
+  mutate(cds_hat = predict * pop) %>%
+  group_by(state,yearmonth) %>%
+  summarise(newcases = sum(newcases_d),
+            cds_hat = sum(cds_hat))
 
 range_write(results_v0, ss = '1w89IU3xGa__wGtFBG-sHBmo7QSGs1NXF9rItS0m2fdo', range = 'Model 2.0!A:F')
 range_write(aic_v0, ss = '1w89IU3xGa__wGtFBG-sHBmo7QSGs1NXF9rItS0m2fdo', range = 'Model 2.0!H:I')
+range_write(m2_0_expecteds_compare, ss = '1w89IU3xGa__wGtFBG-sHBmo7QSGs1NXF9rItS0m2fdo', range = 'Model 2.0!K:N')
 
 # Step 5: Bind final lists and create predicted daily proportion
 
