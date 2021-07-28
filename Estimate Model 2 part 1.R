@@ -1,4 +1,7 @@
+library(tidyverse)
 library(survey)
+library(broom)
+library(googlesheets4)
 
 analytic2_1 <- schedule %>%
   inner_join(puf_df %>%
@@ -25,7 +28,7 @@ d <- svydesign(ids = ~1, weights = ~PWEIGHT, data = analytic2_1)
 # Run with indicators for each level
 
 for (i in unique(analytic2_1$state)) {
-  glm_list[[i]] <- svyglm(Imsi ~ newcases_hat + sex + agebin + raceth + EEDUC +
+  glm_list[[i]] <- glm(Imsi ~ newcases_hat + sex + agebin + raceth + EEDUC +
                           C1_c0 + C1_c1 + C1_c2 + C1_c3 +
                           C2_c0 + C2_c1 + C2_c2 + C2_c3 +
                           C3_c0 + C3_c1 + C3_c2 + 
@@ -33,18 +36,19 @@ for (i in unique(analytic2_1$state)) {
                           C5_c0 + C5_c1 + C5_c2 + 
                           C6_c0 + C6_c1 + C6_c2 + C6_c3 +
                           C7_c0 + C7_c1 + C7_c2 + 
-                          C8_c0 + C8_c1 + C8_c2 + C8_c3 + C8_c4, subset = state == i, design = d, family = binomial)
+                          C8_c0 + C8_c1 + C8_c2 + C8_c3 + C8_c4, subset = state == i, data = analytic2_1, family = binomial)
   predictions_list[[i]] <- predict(glm_list[[i]], type = 'response')
   attributes(predictions_list[[i]]) <- NULL
   final_list[[i]] <- cbind(analytic2_1 %>% filter(state == i),data.frame(predict = predictions_list[[i]]))
 }
+
 
 m2_1_expected_v_df_v1 <- do.call('rbind',final_list)
 
 results_list <- list()
 
 for (i in unique(analytic2_1$state)) {
-  glm <- tidy(svyglm(Imsi ~ newcases_hat + sex + agebin + raceth + EEDUC +
+  glm <- glm(Imsi ~ newcases_hat + sex + agebin + raceth + EEDUC +
                      C1_c0 + C1_c1 + C1_c2 + C1_c3 +
                      C2_c0 + C2_c1 + C2_c2 + C2_c3 +
                      C3_c0 + C3_c1 + C3_c2 + 
@@ -52,7 +56,7 @@ for (i in unique(analytic2_1$state)) {
                      C5_c0 + C5_c1 + C5_c2 + 
                      C6_c0 + C6_c1 + C6_c2 + C6_c3 +
                      C7_c0 + C7_c1 + C7_c2 + 
-                     C8_c0 + C8_c1 + C8_c2 + C8_c3 + C8_c4, subset = state == i, design = d, family = binomial))
+                     C8_c0 + C8_c1 + C8_c2 + C8_c3 + C8_c4, subset = state == i, data = analytic2_1, family = binomial)
   a <- tidy(glm)
   aic <- AIC(glm)
   results_list[[i]] <- cbind(i,a)
@@ -61,16 +65,21 @@ for (i in unique(analytic2_1$state)) {
 
 results_v1 <- do.call('rbind',results_list)
 aic_v1 <- data.frame(do.call('rbind',aic_list))
+m2_1_expecteds_v1_compare <- m2_1_expected_v_df_v1 %>%
+  group_by(state,yearmonth) %>%
+  summarise(imsi = sum(Imsi),
+            predictions = sum(predict))
 
 range_write(results_v1, ss = '1w89IU3xGa__wGtFBG-sHBmo7QSGs1NXF9rItS0m2fdo', range = 'Model 2.1 v1!A:F')
 range_write(aic_v1, ss = '1w89IU3xGa__wGtFBG-sHBmo7QSGs1NXF9rItS0m2fdo', range = 'Model 2.1 v1!H:I')
+range_write(m2_1_expecteds_v1_compare, ss = '1w89IU3xGa__wGtFBG-sHBmo7QSGs1NXF9rItS0m2fdo', range = 'Model 2.1 v1!K:N')
 
 ## Run using sum version 1
 
 for (i in unique(analytic2_1$state)) {
-  glm_list[[i]] <- svyglm(Imsi ~ newcases_hat + sex + agebin + raceth + EEDUC +
+  glm_list[[i]] <- glm(Imsi ~ newcases_hat + sex + agebin + raceth + EEDUC +
                             C1_sum1 + C2_sum1 + C3_sum1 + C4_sum1 +
-                            C5_sum1 + C6_sum1 + C7_sum1 + C8_sum1, subset = state == i, design = d, family = binomial)
+                            C5_sum1 + C6_sum1 + C7_sum1 + C8_sum1, subset = state == i, data = analytic2_1, family = binomial)
   predictions_list[[i]] <- predict(glm_list[[i]], type = 'response')
   attributes(predictions_list[[i]]) <- NULL
   final_list[[i]] <- cbind(analytic2_1 %>% filter(state == i),data.frame(predict = predictions_list[[i]]))
@@ -81,39 +90,59 @@ m2_1_expected_v_df_v2 <- do.call('rbind',final_list)
 results_list <- list()
 
 for (i in unique(analytic2_1$state)) {
-  a <- tidy(svyglm(Imsi ~ newcases_hat + sex + agebin + raceth + EEDUC +
+  glm <- glm(Imsi ~ newcases_hat + sex + agebin + raceth + EEDUC +
                      C1_sum1 + C2_sum1 + C3_sum1 + C4_sum1 +
-                     C5_sum1 + C6_sum1 + C7_sum1 + C8_sum1, subset = state == i, design = d, family = binomial))
+                     C5_sum1 + C6_sum1 + C7_sum1 + C8_sum1, subset = state == i, data = analytic2_1, family = binomial)
+  a <- tidy(glm)
+  aic <- AIC(glm)
   results_list[[i]] <- cbind(i,a)
+  aic_list[[i]] <- cbind(i,aic)
 }
 
 results_v2 <- do.call('rbind',results_list)
+aic_v2 <- data.frame(do.call('rbind',aic_list))
+m2_1_expecteds_v2_compare <- m2_1_expected_v_df_v2 %>%
+  group_by(state,yearmonth) %>%
+  summarise(imsi = sum(Imsi),
+            predictions = sum(predict))
 
-write_sheet(results_v2, ss = '1w89IU3xGa__wGtFBG-sHBmo7QSGs1NXF9rItS0m2fdo', sheet = 'Model 2.1 v2')
+range_write(results_v2, ss = '1w89IU3xGa__wGtFBG-sHBmo7QSGs1NXF9rItS0m2fdo', range = 'Model 2.1 v2!A:F')
+range_write(aic_v2, ss = '1w89IU3xGa__wGtFBG-sHBmo7QSGs1NXF9rItS0m2fdo', range = 'Model 2.1 v2!H:I')
+range_write(m2_1_expecteds_v2_compare, ss = '1w89IU3xGa__wGtFBG-sHBmo7QSGs1NXF9rItS0m2fdo', range = 'Model 2.1 v2!K:N')
 
 ## Run using sum version 2
 
 for (i in unique(analytic2_1$state)) {
-  glm_list[[i]] <- svyglm(Imsi ~ newcases_hat + sex + agebin + raceth + EEDUC +
+  glm_list[[i]] <- glm(Imsi ~ newcases_hat + sex + agebin + raceth + EEDUC +
                             C1_sum2 + C2_sum2 + C3_sum2 + C4_sum2 +
-                            C5_sum2 + C6_sum2 + C7_sum2 + C8_sum2, subset = state == i, design = d, family = binomial)
+                            C5_sum2 + C6_sum2 + C7_sum2 + C8_sum2, subset = state == i, data = analytic2_1, family = binomial)
   predictions_list[[i]] <- predict(glm_list[[i]], type = 'response')
   attributes(predictions_list[[i]]) <- NULL
   final_list[[i]] <- cbind(analytic2_1 %>% filter(state == i),data.frame(predict = predictions_list[[i]]))
 }
 
-m2_1_expected_v_df_v2 <- do.call('rbind',final_list)
+m2_1_expected_v_df_v3 <- do.call('rbind',final_list)
 
 results_list <- list()
 
 for (i in unique(analytic2_1$state)) {
-  a <- tidy(svyglm(Imsi ~ newcases_hat + sex + agebin + raceth + EEDUC +
+  glm <- glm(Imsi ~ newcases_hat + sex + agebin + raceth + EEDUC +
                      C1_sum2 + C2_sum2 + C3_sum2 + C4_sum2 +
-                     C5_sum2 + C6_sum2 + C7_sum2 + C8_sum2, subset = state == i, design = d, family = binomial))
+                     C5_sum2 + C6_sum2 + C7_sum2 + C8_sum2, subset = state == i, data = analytic2_1, family = binomial)
+  a <- tidy(glm)
+  aic <- AIC(glm)
   results_list[[i]] <- cbind(i,a)
+  aic_list[[i]] <- cbind(i,aic)
 }
 
-results_v2 <- do.call('rbind',results_list)
+results_v3 <- do.call('rbind',results_list)
+aic_v3 <- data.frame(do.call('rbind',aic_list))
+m2_1_expecteds_v3_compare <- m2_1_expected_v_df_v3 %>%
+  group_by(state,yearmonth) %>%
+  summarise(imsi = sum(Imsi),
+            predictions = sum(predict))
 
-write_sheet(results_v2, ss = '1w89IU3xGa__wGtFBG-sHBmo7QSGs1NXF9rItS0m2fdo', sheet = 'Model 2.1 v2')
+range_write(results_v3, ss = '1w89IU3xGa__wGtFBG-sHBmo7QSGs1NXF9rItS0m2fdo', range = 'Model 2.1 v3!A:F')
+range_write(aic_v3, ss = '1w89IU3xGa__wGtFBG-sHBmo7QSGs1NXF9rItS0m2fdo', range = 'Model 2.1 v3!H:I')
+range_write(m2_1_expecteds_v3_compare, ss = '1w89IU3xGa__wGtFBG-sHBmo7QSGs1NXF9rItS0m2fdo', range = 'Model 2.1 v3!K:N')
 
