@@ -150,7 +150,7 @@ analytic2_0 <- st_pop %>%
          C8_z2 = C8_fade2 * C8_i2,
          C8_z3 = C8_fade3 * C8_i3,
          C8_z4 = C8_fade4 * C8_i4) %>%
-  filter(pds > 0, complete.cases(.))
+  filter(pds > 0, complete.cases(.), date >= '2020-03-01')
 
 # Step 3: Prepare for loop
 
