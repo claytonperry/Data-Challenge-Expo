@@ -172,10 +172,10 @@ m2_0_v_df <- do.call('rbind',final_list) %>%
   mutate(cds_hat = predict * pop)
 
 
-m2_0_monthly <- v_df %>%
+m2_0_monthly <- m2_0_v_df %>%
   select(state,yearmonth,cds_hat) %>%
   group_by(state,yearmonth) %>%
-  summarise(newcases = sum(cds_hat))
+  summarise(newcases_hat = sum(cds_hat))
 
 # Step 6: Create analytic file for model 2.1
 
@@ -209,10 +209,13 @@ for (i in unique(analytic2_1$state)) {
                          C5_sum1 + C6_sum1 + C7_sum1 + C8_sum1, subset = state == i, data = analytic2_1, family = binomial)
   predictions_list[[i]] <- predict(glm_list[[i]], type = 'response')
   attributes(predictions_list[[i]]) <- NULL
-  final_list[[i]] <- cbind(analytic2_1 %>% filter(state == i),data.frame(predict = predictions_list[[i]]))
+  final_list[[i]] <- cbind(analytic2_1 %>% filter(state == i),data.frame(predict_ue = predictions_list[[i]]))
 }
 
-m2_1_v_df <- do.call('rbind',final_list)
+m2_1_v_df <- do.call('rbind',final_list) %>%
+  group_by(state,yearmonth) %>%
+  summarise(UE_unweight = sum(predict_ue),
+            UE_weight = sum(predict_ue * PWEIGHT))
 
 #Step 9: Create analytic file for model 2.2
 
@@ -240,16 +243,21 @@ for (i in unique(analytic2_2$state)) {
                          C5_sum1 + C6_sum1 + C7_sum1 + C8_sum1, subset = state == i, data = analytic2_2, family = binomial)
   predictions_list[[i]] <- predict(glm_list[[i]], type = 'response')
   attributes(predictions_list[[i]]) <- NULL
-  final_list[[i]] <- cbind(analytic2_2 %>% filter(state == i),data.frame(predict = predictions_list[[i]]))
+  final_list[[i]] <- cbind(analytic2_2 %>% filter(state == i),data.frame(predict_clf = predictions_list[[i]]))
 }
 
-m2_2_v_df <- do.call('rbind',final_list)
-
+m2_2_v_df <- do.call('rbind',final_list) %>%
+  group_by(state,yearmonth) %>%
+  summarise(CLF_unweight = sum(predict_clf),
+            CLF_weight = sum(predict_clf * WTFINL))
 
 # Step 12: Join dataframes
 
 scenario1_viz <- schedule %>%
-  inner_join(conf_monthly, by = c('state','yearmonth')) %>%
+  inner_join(confmonthly, by = 'yearmonth') %>%
   inner_join(m2_1_v_df, by = c('state','yearmonth')) %>%
   inner_join(m2_2_v_df, by = c('state','yearmonth')) %>%
-  mutate(scenario = 'scenario 1')
+  mutate(scenario = 'scenario 1',
+         unemp_rt_unweight = UE_unweight/CLF_unweight,
+         unemp_rt_weight = UE_weight/CLF_weight) %>%
+  arrange(state,year,week)
