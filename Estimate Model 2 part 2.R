@@ -153,7 +153,7 @@ range_write(m2_2_expecteds_v2_compare, ss = '1w89IU3xGa__wGtFBG-sHBmo7QSGs1NXF9r
 #range_write(m2_2_expecteds_v3_compare, ss = '1w89IU3xGa__wGtFBG-sHBmo7QSGs1NXF9rItS0m2fdo', range = 'Model 2.2 v3!K:N')
 
 
-#CHRYS - subset analysis for Richard 
+#CHRYS - subset analysis for Richard (CA)
 #version using sum1
 
 analytic2_2_ca <- analytic2_2 %>%
@@ -193,3 +193,49 @@ range_write(m2_2_results_v2_ca, ss = '1w89IU3xGa__wGtFBG-sHBmo7QSGs1NXF9rItS0m2f
 range_write(m2_2_aic_v2_ca, ss = '1w89IU3xGa__wGtFBG-sHBmo7QSGs1NXF9rItS0m2fdo', range = 'Model 2.2 v2 CAglm!H:I')
 range_write(m2_2_expecteds_v2_ca_compare, ss = '1w89IU3xGa__wGtFBG-sHBmo7QSGs1NXF9rItS0m2fdo', range = 'Model 2.2 v2 CAglm!K:O')
 
+#svyglm code???
+
+
+#CHRYS - subset analysis for Richard (all states)
+#version using sum1
+
+#glm
+glm_list <- list()
+predictions_list <- list()
+final_list <- list()
+
+for (i in unique(analytic2_2$state)) {
+  glm_list[[i]] <- glm(CLF ~ newcases_hat + SEX + agebin + raceth + EEDUC +
+                         C1_sum1 + C2_sum1 + C3_sum1 + C4_sum1, subset = state == i, data = analytic2_2, family = binomial)
+  predictions_list[[i]] <- predict(glm_list[[i]], type = 'response')
+  attributes(predictions_list[[i]]) <- NULL
+  final_list[[i]] <- cbind(analytic2_2 %>% filter(state == i),data.frame(predict = predictions_list[[i]]))
+}
+
+m2_2_expected_v_df_v2_all <- do.call('rbind',final_list)
+
+results_list <- list()
+
+for (i in unique(analytic2_2$state)) {
+  glm <- glm(CLF ~ newcases_hat + SEX + agebin + raceth + EEDUC +
+               C1_sum1 + C2_sum1 + C3_sum1 + C4_sum1, subset = state == i, data = analytic2_2, family = binomial)
+  a <- tidy(glm)
+  aic <- AIC(glm)
+  results_list[[i]] <- cbind(i,a)
+  aic_list[[i]] <- cbind(i,aic)
+}
+
+
+m2_2_results_v2_all <- do.call('rbind',results_list)
+m2_2_aic_v2_all <- data.frame(do.call('rbind',aic_list))
+m2_2_expecteds_v2_all_compare <- m2_2_expected_v_df_v2_all %>%
+  group_by(state,yearmonth) %>%
+  summarise(samp_size = n(),
+            CLF = sum(CLF),
+            predictions = sum(predict),
+            pop_wtd = sum(WTFINL),
+            pred_wtd = sum(WTFINL*predict))
+
+range_write(m2_2_results_v2_all, ss = '1w89IU3xGa__wGtFBG-sHBmo7QSGs1NXF9rItS0m2fdo', range = 'Model 2.2 v2 ALLC4glm!A:F')
+range_write(m2_2_aic_v2_all, ss = '1w89IU3xGa__wGtFBG-sHBmo7QSGs1NXF9rItS0m2fdo', range = 'Model 2.2 v2 ALLC4glm!H:I')
+range_write(m2_2_expecteds_v2_all_compare, ss = '1w89IU3xGa__wGtFBG-sHBmo7QSGs1NXF9rItS0m2fdo', range = 'Model 2.2 v2 ALLC4glm!K:Q')
