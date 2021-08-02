@@ -89,7 +89,7 @@ fctsum <- function(x, na.rm = TRUE) {sum(ifelse(x < 9, x^2, 0))}
 restrictions_mnth <- restrictions %>% 
   mutate(yearmonth = paste0(year(date), ' ',month(date, label = T, abbr = F))) %>%
   group_by(state, yearmonth) %>%
-  summarise(across(C1:C8, list(c0 = cnt_0, c1 = cnt_1, c2 = cnt_2, c3 = cnt_3, c4 = cnt_4, sum1 = sum1, sum2 = fctsum), na.rm = TRUE),
+  summarise(across(C1:C8, list(sum1 = sum1), na.rm = TRUE),
             across(C1_as1:C8_as1, list(sum1 = sum1), na.rm = TRUE),
             across(C1_as2:C8_as2, list(sum1 = sum1), na.rm = TRUE))
 
