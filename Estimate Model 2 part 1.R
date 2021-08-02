@@ -198,3 +198,47 @@ for (i in unique(analytic2_1_ca$state)) {
   final_list[[i]] <- cbind(analytic2_1 %>% filter(state == i),data.frame(predict = predictions_list[[i]]))
 }
 #add more code once you get the svyglm to work...
+
+
+##CHRYS - subset analysis for Richard (all states)
+## Run using sum version 1
+
+#glm
+glm_list <- list()
+predictions_list <- list()
+final_list <- list()
+
+for (i in unique(analytic2_1$state)) {
+  glm_list[[i]] <- glm(Imsi ~ newcases_hat + sex + agebin + raceth + EEDUC +
+                         C1_sum1 + C2_sum1 + C3_sum1 + C4_sum1, subset = state == i, data = analytic2_1, family = binomial)
+  predictions_list[[i]] <- predict(glm_list[[i]], type = 'response')
+  attributes(predictions_list[[i]]) <- NULL
+  final_list[[i]] <- cbind(analytic2_1 %>% filter(state == i),data.frame(predict = predictions_list[[i]]))
+}
+
+m2_1_expected_v_df_v2_all <- do.call('rbind',final_list)
+
+results_list <- list()
+
+for (i in unique(analytic2_1$state)) {
+  glm <- glm(Imsi ~ newcases_hat + sex + agebin + raceth + EEDUC +
+               C1_sum1 + C2_sum1 + C3_sum1 + C4_sum1, subset = state == i, data = analytic2_1, family = binomial)
+  a <- tidy(glm)
+  aic <- AIC(glm)
+  results_list[[i]] <- cbind(i,a)
+  aic_list[[i]] <- cbind(i,aic)
+}
+
+results_v2_all <- do.call('rbind',results_list)
+aic_v2_all <- data.frame(do.call('rbind',aic_list))
+m2_1_expecteds_v2_all_compare <- m2_1_expected_v_df_v2_all %>%
+  group_by(state,yearmonth) %>%
+  summarise(samp_size = n(),
+            imsi = sum(Imsi),
+            predictions = sum(predict),
+            pop_wtd = sum(PWEIGHT),
+            pred_wtd = sum(PWEIGHT*predict))
+
+range_write(results_v2_all, ss = '1w89IU3xGa__wGtFBG-sHBmo7QSGs1NXF9rItS0m2fdo', range = 'Model 2.1 v2 ALLC4glm!A:F')
+range_write(aic_v2_all, ss = '1w89IU3xGa__wGtFBG-sHBmo7QSGs1NXF9rItS0m2fdo', range = 'Model 2.1 v2 ALLC4glm!H:I')
+range_write(m2_1_expecteds_v2_all_compare, ss = '1w89IU3xGa__wGtFBG-sHBmo7QSGs1NXF9rItS0m2fdo', range = 'Model 2.1 v2 ALLC4glm!K:Q')
