@@ -105,7 +105,7 @@ for (i in unique(analytic2_2$state)) {
 
 m2_2_results_v2 <- do.call('rbind',results_list)
 m2_2_aic_v2 <- data.frame(do.call('rbind',aic_list))
-m2_2_expecteds_v2_compare <- m2_2_expected_v_df_v1 %>%
+m2_2_expecteds_v2_compare <- m2_2_expected_v_df_v2 %>%
   group_by(state,yearmonth) %>%
   summarise(samp_size = n(),
             CLF = sum(CLF),
