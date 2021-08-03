@@ -31,10 +31,13 @@ st_pop <- acs_19_1yr_pums %>%
   group_by(state) %>%
   summarise(pop = sum(PWGTP))
 
+restrictions_as1 <- restrictions %>%
+  select(state, date, mon, yr, C1_as1:C8_as1) %>%
+  rename(C1 = C1_as1, C2 = C2_as1, C3 = C3_as1, C4 = C4_as1, C5 = C5_as1, C6 = C6_as1, C7 = C7_as1, C8 = C8_as1)
 
 analytic2_0 <- st_pop %>%
   inner_join(confdaily, by = 'state') %>%
-  inner_join(restrictions, by = c('state','date')) %>%
+  inner_join(restrictions_as1, by = c('state','date')) %>%
   group_by(state) %>%
   mutate(d = row_number()) %>%
   ungroup() %>%
@@ -192,7 +195,7 @@ analytic2_1 <- schedule %>%
   full_join(states, by = 'fips') %>%
   inner_join(m2_0_monthly, by = c('yearmonth', 'state')) %>%
   inner_join(restrictions_mnth, by = c('yearmonth','state')) %>%
-  select(Imsi, sex, state, yearmonth, newcases_hat, PWEIGHT, weight, EEDUC, raceth, agebin, C1_sum1:C8_sum1) %>%
+  select(Imsi, sex, state, yearmonth, newcases_hat, PWEIGHT, weight, EEDUC, raceth, agebin, C1_as1_sum1:C8_as1_sum1) %>%
   mutate(id = row_number())
 
 # Step 7:  Re-initialize lists for next loop
@@ -205,8 +208,8 @@ final_list <- list()
 
 for (i in unique(analytic2_1$state)) {
   glm_list[[i]] <- glm(Imsi ~ newcases_hat + sex + agebin + raceth + EEDUC +
-                         C1_sum1 + C2_sum1 + C3_sum1 + C4_sum1 +
-                         C5_sum1 + C6_sum1 + C7_sum1 + C8_sum1, subset = state == i, data = analytic2_1, family = binomial)
+                         C1_as1_sum1 + C2_as1_sum1 + C3_as1_sum1 + C4_as1_sum1 +
+                         C5_as1_sum1 + C6_as1_sum1 + C7_as1_sum1 + C8_as1_sum1, subset = state == i, data = analytic2_1, family = binomial)
   predictions_list[[i]] <- predict(glm_list[[i]], type = 'response')
   attributes(predictions_list[[i]]) <- NULL
   final_list[[i]] <- cbind(analytic2_1 %>% filter(state == i),data.frame(predict_ue = predictions_list[[i]]))
@@ -226,7 +229,7 @@ analytic2_2 <- schedule %>% #start with schedule
   filter(LABFORCE %in% c(1,2)) %>% #filter for individuals with relevant LABFORCE values
   mutate(CLF = ifelse(LABFORCE == 1, 0, 1)) %>% #create dependent variable
   select(CLF, SEX, EEDUC, agebin, raceth, WTFINL, newcases_hat, yearmonth, state,
-         C1_sum1, C2_sum1, C3_sum1, C4_sum1, C5_sum1, C6_sum1, C7_sum1, C8_sum1) %>% #retain relevant variables
+         C1_as1_sum1, C2_as1_sum1, C3_as1_sum1, C4_as1_sum1, C5_as1_sum1, C6_as1_sum1, C7_as1_sum1, C8_as1_sum1) %>% #retain relevant variables
   remove_attributes(.,c('label','var_desc'))
 
 # Step 10: Re-initialize lists for next loop
@@ -239,8 +242,8 @@ final_list <- list()
 
 for (i in unique(analytic2_2$state)) {
   glm_list[[i]] <- glm(CLF ~ newcases_hat + SEX + agebin + raceth + EEDUC +
-                         C1_sum1 + C2_sum1 + C3_sum1 + C4_sum1 +
-                         C5_sum1 + C6_sum1 + C7_sum1 + C8_sum1, subset = state == i, data = analytic2_2, family = binomial)
+                         C1_as1_sum1 + C2_as1_sum1 + C3_as1_sum1 + C4_as1_sum1 +
+                         C5_as1_sum1 + C6_as1_sum1 + C7_as1_sum1 + C8_as1_sum1, subset = state == i, data = analytic2_2, family = binomial)
   predictions_list[[i]] <- predict(glm_list[[i]], type = 'response')
   attributes(predictions_list[[i]]) <- NULL
   final_list[[i]] <- cbind(analytic2_2 %>% filter(state == i),data.frame(predict_clf = predictions_list[[i]]))
@@ -253,12 +256,12 @@ m2_2_v_df <- do.call('rbind',final_list) %>%
 
 # Step 12: Join dataframes
 
-scenario1_viz <- schedule %>%
-  inner_join(confmonthly, by = 'yearmonth') %>%
+scenario2_viz <- schedule %>%
+  inner_join(m2_0_monthly, by = 'yearmonth') %>%
   inner_join(m2_1_v_df, by = c('state','yearmonth')) %>%
   inner_join(m2_2_v_df, by = c('state','yearmonth')) %>%
-  mutate(scenario = 'scenario 1',
+  mutate(scenario = 'scenario 2',
          unemp_rt_unweight = UE_unweight/CLF_unweight,
          unemp_rt_weight = UE_weight/CLF_weight) %>%
-  select(-cases) %>%
+  rename(newcases = newcases_hat) %>%
   arrange(state,year,week)
