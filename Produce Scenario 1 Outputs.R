@@ -260,4 +260,5 @@ scenario1_viz <- schedule %>%
   mutate(scenario = 'scenario 1',
          unemp_rt_unweight = UE_unweight/CLF_unweight,
          unemp_rt_weight = UE_weight/CLF_weight) %>%
+  select(-cases) %>%
   arrange(state,year,week)
