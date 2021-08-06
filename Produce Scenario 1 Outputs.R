@@ -262,3 +262,11 @@ scenario1_viz <- schedule %>%
          unemp_rt_weight = UE_weight/CLF_weight) %>%
   select(-cases) %>%
   arrange(state,year,week)
+
+# Step 13: Create national level dataframe for AS comparison (presentation only, not viz)
+nat_scen_1 <- m2_1_v_df %>%
+  inner_join(m2_2_v_df, by = c('state','yearmonth')) %>%
+  group_by(yearmonth) %>%
+  summarise(UE = sum(UE_weight),
+            CLF = sum(CLF_weight)) %>%
+  mutate(UE_rt = UE / CLF)
